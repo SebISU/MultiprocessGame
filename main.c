@@ -15,7 +15,7 @@ int main(void){
 
                 if (i == 0 || j == 0 || i == 127 || j == 127){
 
-                    table[i][j] = '%';
+                    table[i][j] = '#';
                 }
                 else if (rand() % 2 == 1){
 
@@ -44,7 +44,55 @@ int main(void){
 
 /*
 
-basic explanation of project's stucture in recording of a lecture 17.12 -> 1:00:00
+basic explanation of project's stucture in the recording of a lecture 17.12 -> 1:00:00
 
+to compile a program with a shared memory one has to add a flag -lrt
+to compile a program with threads one has to add a flag -lpthread
+
+Use shmget, shmat etc. to create a shared memory. You use a filename, but you do not use real file.
+It is just a handler. You can use file, but it makes your program slower. <sys/shm.h>, <sys/types.h>
+Consider shared memory with readonly parameter on the client side !
+
+You have to share a block of memory, so maybe It could be good to create a structure that contains all
+required info. Thanks to this you create a required, universal API.
+
+Semaphors work for processes in kind a way like mutexes for threads.
+Semaphors have names as the shared memory has. Thanks to this you will be able to call the same semaphor in many programs.
+You just need to have the name saved somewhere e.g in header file and you have to sem_open() and sem_close()
+in each program. Parent program can/should call sem_unilink() at the beginning to make sure that no semaphor
+with this name is already running.
+Use semaphors with names. Unnamed require forking. Duch said that there is no need of forks in this project.
+
+Calling sem_wait() decrements iterator. "Tell someone that I need an answer".
+Calling sem_post() increments iterator. "Tell the boss that answer is already sent.
+
+Server runner has to be divided into cycles. In each period every client/beast/bot can make a move.
+Use semaphores to get info about moves from clients. Client has a chance to make a move, but after
+defined period client has to return sth, even info about no move. Move can be wrong, server is responsible for validation.
+How to run this subsequently? Think it over.
+
+After move time server changes clients positions and performs all required operations (move client to the campsite, add coins etc.).
+At the end of cycle server changes info in a shared memory/memories. Thanks to this client view can be changed. Info about change in shared
+memory/s can be a round number. Has to increment, even if there was no move. 
+
+Should I create 4 shared memories and 4 semaphors? One for each client? It is written in a task desc. that clients can not have
+access to other clients info.
+
+How to get info that new client wants to join? How to manage this? 4 available programs with assigned shared memory names inside?
+Stupid. Maybe counter in server program and enum or sth with names in the header file?
+
+In the basic program beast is a thread of server program. Later beasts have to be a separate program, beast per thread.
+
+Treasures are simply added to a table containing game map. Adding treasures as a separate thread?
+
+Think over how to manage threads in a server. Clients, beasts, adding treasures as separate threads?
+
+Expected that can be a class:
+- beast
+- bot
+- client
+- server
+
+Should the server remember a previous client state because of bushes? Or do it on the client side.
 
 */
