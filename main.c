@@ -49,7 +49,7 @@ basic explanation of project's stucture in the recording of a lecture 17.12 -> 1
 to compile a program with a shared memory one has to add a flag -lrt
 to compile a program with threads one has to add a flag -lpthread
 
-Use shmget, shmat etc. to create a shared memory. You use a filename, but you do not use real file.
+Use shmget, shmat etc. to create a shared memory. You use a filename, but you do not use a real file.
 It is just a handler. You can use file, but it makes your program slower. <sys/shm.h>, <sys/types.h>
 Consider shared memory with readonly parameter on the client side !
 
@@ -67,8 +67,8 @@ Calling sem_wait() decrements iterator. "Tell someone that I need an answer".
 Calling sem_post() increments iterator. "Tell the boss that answer is already sent.
 
 Server runner has to be divided into cycles. In each period every client/beast/bot can make a move.
-Use semaphores to get info about moves from clients. Client has a chance to make a move, but after
-defined period client has to return sth, even info about no move. Move can be wrong, server is responsible for validation.
+Use semaphores to get info about moves from clients. Client has a chance to make a move, <= instead I should check each time, if there is a move in shared memory => (but after
+defined period client has to return sth, even info about no move.) Move can be wrong, server is responsible for validation.
 How to run this subsequently? Think it over.
 
 After move time server changes clients positions and performs all required operations (move client to the campsite, add coins etc.).
@@ -94,5 +94,15 @@ Expected that can be a class:
 - server
 
 Should the server remember a previous client state because of bushes? Or do it on the client side.
+
+To fetch keybindings just scanf/getchar + fflush stdin  will be enough?
+
+How to keep info about dropped coins? Linked list node to keep coordinates and dropped value on the server side.
+
+At the beginning of each client program run a loop 4 times to check if any shared memory is available.
+Inside each shared memory keep a flag that informs if memory is already in use. I can use a client number field
+(0 or -1 means not in use or sth). It doesn't even has to be an enum. Just check all possibilities.
+
+Q/q key presssed by client can be passed in the same way as direction with a different enum value.
 
 */
