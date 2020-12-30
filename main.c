@@ -49,19 +49,20 @@ basic explanation of project's stucture in the recording of a lecture 17.12 -> 1
 to compile a program with a shared memory one has to add a flag -lrt
 to compile a program with threads one has to add a flag -lpthread
 
-Use shmget, shmat etc. to create a shared memory. You use a filename, but you do not use a real file.
-It is just a handler. You can use file, but it makes your program slower. <sys/shm.h>, <sys/types.h>
-Consider shared memory with readonly parameter on the client side !
+//Use shmget, shmat etc. to create a shared memory. You use a filename, but you do not use a real file.
+//It is just a handler. You can use file, but it makes your program slower. <sys/shm.h>, <sys/types.h>
+//Consider shared memory with readonly parameter on the client side !
 
-You have to share a block of memory, so maybe It could be good to create a structure that contains all
-required info. Thanks to this you create a required, universal API.
+//You have to share a block of memory, so maybe It could be good to create a structure that contains all
+//required info. Thanks to this you create a required, universal API.
 
 Semaphors work for processes in kind a way like mutexes for threads.
 Semaphors have names as the shared memory has. Thanks to this you will be able to call the same semaphor in many programs.
 You just need to have the name saved somewhere e.g in header file and you have to sem_open() and sem_close()
 in each program. Parent program can/should call sem_unilink() at the beginning to make sure that no semaphor
-with this name is already running.
+with this name is already running. At the end too.
 Use semaphors with names. Unnamed require forking. Duch said that there is no need of forks in this project.
+bullshit, with unnamed will be easier. Problem 
 
 Calling sem_wait() decrements iterator. "Tell someone that I need an answer".
 Calling sem_post() increments iterator. "Tell the boss that answer is already sent.
@@ -94,6 +95,7 @@ Expected that can be a class:
 - server
 
 Should the server remember a previous client state because of bushes? Or do it on the client side.
+Info about what to manage this? (previous state and move, flag bushes/not bushes)
 
 To fetch keybindings just scanf/getchar + fflush stdin  will be enough?
 
@@ -104,5 +106,29 @@ Inside each shared memory keep a flag that informs if memory is already in use. 
 (0 or -1 means not in use or sth). It doesn't even has to be an enum. Just check all possibilities.
 
 Q/q key presssed by client can be passed in the same way as direction with a different enum value.
+
+SERVER
+ ^^^ 4 threads with infinite while loop and semaphors to manage clients keybindings. 
+    plus mutexes to be sure that client doesn't change in the same time as server? YEAH
+ ^^^ thread to manage server keybindings and the end of game
+
+Client can change fields in shared memory, but copies are kept on the server side.
+If client tries to change deaths, coins or round number server will fix this.
+
+A new connection has to send info with the player number and values to set.
+Client can't choose which free player will be.
+
+FINAL SERVER:
+1. Select the campsite coordinates and set values in the control struct, remember about mutex
+2. Display the server view
+3. Create threads: keybindings, clients connections, 
+
+Threads server:
+
+- handling connections
+- handling keybinings
+- main thread/handling game cycles
+
+What is the best way to manage server termination?
 
 */
