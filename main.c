@@ -44,6 +44,11 @@ int main(void){
 
 /*
 
+How to quit a game on server side? Set a current move to QUIT instead of NO_MOVE on server side?
+How to manage killed clients? Add a field to a client_api with PID, that should be set
+by client in each round? If not, PID has a 0 value and server should remove player.
+Does the easier way exist?
+
 basic explanation of project's stucture in the recording of a lecture 17.12 -> 1:00:00
 
 to compile a program with a shared memory one has to add a flag -lrt

@@ -1,6 +1,4 @@
 #include "multi_header.h"
-#include <stdio.h>
-#include <stdlib.h>
 
 
 uint32_t add_trea(struct trea_node ** head, uint8_t x, uint8_t y , uint32_t value){
@@ -94,34 +92,6 @@ void destroy_trea(struct trea_node ** head){
     }
 }
 
-void display_client(struct api_t * client){
-
-    if (client != NULL){
-
-        printf("%-54sServer`s PID: %u\n", client->game_grid, client->server_pid);
-        printf("%-55sCampsite X/Y: unknown\n", client->game_grid + 1);
-        printf("%-55sRound number: %u\n", client->game_grid + 2, client->round_number);
-        printf("%s\n", client->game_grid + 3);
-        printf("%-54sPlayer:\n", client->game_grid + 4);
-        printf("%-55sNumber:     %u\n", "", client->player_number);
-        printf("%-55sType:       %5s\n", "", client->type);
-        printf("%-55sCurr X/Y:   %02u/%02u\n", "", client->position.x, client->position.y);
-        printf("%-55sDeaths:     %u\n\n", "", client->deaths);
-        printf("%-55sCoins carried:   %u\n", "", client->coins_carried);
-        printf("%-55sCoins brought: %u\n\n\n\n", "", client->coins_brought);
-        printf("%-54sLegend:\n", "");
-        printf("%-55s1234 - players\n", "");
-        printf("%-55s#    - wall\n", "");
-        printf("%-55s~    - bushes (slow down)\n", "");
-        printf("%-55s*    - enemy\n", "");
-        printf("%-55sD    - dropped treasure\n", "");
-        printf("%-55sc    - one coin\n", "");
-        printf("%-55sC    - treasure (10 coins)\n", "");
-        printf("%-55sT    - large treasure (50 coins)\n", "");
-        printf("%-55sA    - campsite\n", "");
-    }
-}
-
 void display_server(struct server_info* server){
 
     if (server != NULL){
@@ -177,6 +147,14 @@ uint32_t init_shd_memories(struct api_wrap_t * api_client, struct api_wrap_conn 
         return 1;
     }
 
+        // could/should be in case program failed and unlinked memos
+        // shm_unlink(SHD_MEM_1);
+        // shm_unlink(SHD_MEM_2);
+        // shm_unlink(SHD_MEM_3);
+        // shm_unlink(SHD_MEM_4);
+        // shm_unlink(SHD_MEM_5);
+        // shm_unlink(SHD_MEM_CONN);
+
     int32_t status;
 
     api_conn->api_id = shm_open(SHD_MEM_CONN, O_CREAT | O_RDWR, 0600); // if problem try to fiddle with chmod
@@ -203,23 +181,27 @@ uint32_t init_shd_memories(struct api_wrap_t * api_client, struct api_wrap_conn 
         return 1;
     }
 
-    for (int32_t i = 0; i < PLAYERS_NUM; ++i){
+    for (int32_t i = 0; i < PLAYERS_NUM + 1; ++i){
 
         if (i == 0){
 
-            (api_client + i)->api_id = shm_open(SEM_1, O_CREAT | O_RDWR, 0600);
+            (api_client + i)->api_id = shm_open(SHD_MEM_1, O_CREAT | O_RDWR, 0600);
         }
         else if(i == 1){
 
-            (api_client + i)->api_id = shm_open(SEM_2, O_CREAT | O_RDWR, 0600);
+            (api_client + i)->api_id = shm_open(SHD_MEM_2, O_CREAT | O_RDWR, 0600);
         }
         else if (i == 2){
 
-            (api_client + i)->api_id = shm_open(SEM_3, O_CREAT | O_RDWR, 0600);
+            (api_client + i)->api_id = shm_open(SHD_MEM_3, O_CREAT | O_RDWR, 0600);
         }
         else if (i == 3){
 
-            (api_client + i)->api_id = shm_open(SEM_4, O_CREAT | O_RDWR, 0600);
+            (api_client + i)->api_id = shm_open(SHD_MEM_4, O_CREAT | O_RDWR, 0600);
+        }
+        else if (i == 4){
+
+            (api_client + i)->api_id = shm_open(SHD_MEM_5, O_CREAT | O_RDWR, 0600);
         }
 
         if ((api_client + i)->api_id == -1){
@@ -265,34 +247,45 @@ void destroy_shd_memories(struct api_wrap_t * api_client, struct api_wrap_conn *
 
     if (api_client != NULL){
 
-        for (int32_t i = 0; i < PLAYERS_NUM; ++i){
+        for (int32_t i = 0; i < PLAYERS_NUM + 1; ++i){
 
             if ((api_client + i)->api != NULL){
 
                 munmap((api_client + i)->api, sizeof(struct api_t)); // can check too
             }
 
-            close((api_client + i)->api_id);
-            
+            if ((api_client + i)->api_id != -1){
+                
+                close((api_client + i)->api_id);
+            }
+
             if (i == 0){
 
-                shm_unlink(SEM_1);
+                shm_unlink(SHD_MEM_1);
             }
             else if(i == 1){
 
-                shm_unlink(SEM_2);
+                shm_unlink(SHD_MEM_2);
             }
             else if (i == 2){
 
-                shm_unlink(SEM_3);
+                shm_unlink(SHD_MEM_3);
             }
             else if (i == 3){
 
-                shm_unlink(SEM_4);
+                shm_unlink(SHD_MEM_4);
             }
-        
-        }
+            else if (i == 4){
 
+                shm_unlink(SHD_MEM_5);
+            }
+        }
+        // try instead of if statements
+        // shm_unlink(SHD_MEM_1);
+        // shm_unlink(SHD_MEM_2);
+        // shm_unlink(SHD_MEM_3);
+        // shm_unlink(SHD_MEM_4);
+        // shm_unlink(SHD_MEM_5);
     }
 }
 
@@ -341,9 +334,18 @@ struct server_info * init_server_info(uint8_t ** gm_board){
         return NULL;
     }
 
-    gm_board[server->camp_position.x][server->camp_position.y] = 'A';
+    server->round_number = 0;
+    server->trea_list_head = NULL;
+    server->server_pid = getpid();
+    server->game_grid = gm_board;
 
-    for (int32_t i = 0; i < PLAYERS_NUM; ++i){
+    if (0 < set_new_character_game_board(server, &server->camp_position, 'A')){
+
+        free(server);
+        return NULL;
+    }
+
+    for (int32_t i = 0; i < PLAYERS_NUM + 1; ++i){
 
         if (1 == reset_player_info(server->players + i)){
 
@@ -358,12 +360,12 @@ struct server_info * init_server_info(uint8_t ** gm_board){
         return NULL;
     }
 
-    server->round_number = 0;
-    server->trea_list_head = NULL;
-    server->server_pid = getpid();
-    server->game_grid = gm_board;
+    if (reset_api_conn(server)){
 
-    server->api_conn.api->player_number = 0;
+        destroy_shd_memories(server->api_client, &server->api_conn);
+        free(server);
+        return NULL;
+    }
 
     return server;
 }
@@ -392,23 +394,31 @@ uint32_t reset_player_info(struct client_info * player){
     return 0;
 };
 
+uint32_t set_api_client(struct server_info * server){
+
+
+
+}
+
 void * handle_connections(void * svr){
 
     //what if server == NULL, cannot stop server because you don't have any info, data
+
+    // think how to stop this thread properly. Easy without semaphors ...
 
     struct server_info * server = (struct server_info *)svr;
 
     sem_unlink(SEM_CONN_SERVER); // for sure, maybe does not required
     sem_unlink(SEM_CONN_CLIENT); // if sem is opened somewhere it still runs until it will be closed
 
-    server->api_conn.api->sem_server = sem_open(SEM_CONN_SERVER, O_CREAT | O_EXCL, 0600, 0);
+    server->api_conn.api->sem_server = sem_open(SEM_CONN_SERVER, O_CREAT | O_EXCL, 0600, 1);
     
     if (server->api_conn.api->sem_server == SEM_FAILED){
 
         return NULL;
     }
 
-    server->api_conn.api->sem_client = sem_open(SEM_CONN_CLIENT, O_CREAT | O_EXCL, 0600, 1);
+    server->api_conn.api->sem_client = sem_open(SEM_CONN_CLIENT, O_CREAT | O_EXCL, 0600, 0);
     
     if (server->api_conn.api->sem_client == SEM_FAILED){
 
@@ -429,29 +439,49 @@ void * handle_connections(void * svr){
             return NULL;
         }
 
-        sem_wait(server->api_conn.api->sem_server);
+        sem_wait(server->api_conn.api->sem_client);
 
-        
+        accept_new_connection(server);  // what happen if connecting failed
 
-        sem_post(server->api_conn.api->sem_client);
+        sem_post(server->api_conn.api->sem_server);
 
     }
 
     return NULL;
 }
 
-uint32_t update_api_conn(struct server_info * api){ // setting spawn, type etc. with info from client
+uint32_t reset_api_conn(struct server_info * server){
 
-    if (api == NULL){
+    if (server == NULL){
 
         return 1;
+    }
+
+    server->api_conn.api->player_number = 0;
+    server->api_conn.api->client_pid = 0;
+    server->api_conn.api->beasts_in_game = 0;
+
+    return 0;
+}
+
+uint32_t update_api_conn(struct server_info * server){  // add statements for beasts_in_game
+
+    if (server == NULL){
+
+        return 1;
+    }
+
+    if (server->api_conn.api->player_number != 0){
+
+        server->api_conn.api->client_pid = 0;
+        return 0;
     }
 
     int32_t i;
 
     for (i = 0; i < PLAYERS_NUM; ++i){
 
-        if (api->players[i].player_number == 0){
+        if (server->players[i].player_number == 0){
         
             break;
         }
@@ -459,12 +489,186 @@ uint32_t update_api_conn(struct server_info * api){ // setting spawn, type etc. 
 
     if (i < PLAYERS_NUM){
         
-        api->api_conn.api->player_number = i + 1;
-        api->players[i].player_number = i + 1; // mutex probably does not required
-    }
-    else{
+        reset_player_info(server->players + i);
 
-        api->api_conn.api->player_number = 0;
+        server->api_conn.api->player_number = i + 1;
+        server->players[i].player_number = i + 1; // mutex probably does not required
+    }
+
+    server->api_conn.api->client_pid = 0;
+
+    return 0;
+}
+
+uint32_t accept_new_connection(struct server_info * server){
+
+    // can add a possibility to many attempts like in the web requests
+
+    if (server == NULL){
+
+        return 1;
+    }
+
+    if (strcmp(server->api_conn.api->client_type, "HUMAN") != 0 &&
+    strcmp(server->api_conn.api->client_type, "CPU") != 0 &&
+    strcmp(server->api_conn.api->client_type, "BEAST") != 0){
+
+        return 2;
+    }
+
+    if (server->api_conn.api->client_pid == 0){
+
+        return 3;
+    }
+
+    int32_t i;
+
+    for (i = 0; i < PLAYERS_NUM; ++i){
+
+        if (server->players[i].player_number == server->api_conn.api->player_number){
+
+            prepare_new_player(server);
+            reset_api_conn(server);
+
+            break;
+        }
+    }
+
+    if (i == PLAYERS_NUM){
+
+        return 4;
+    }
+
+    return 0;
+}
+
+uint32_t prepare_new_player(struct server_info * server){
+
+    if (server == NULL){
+
+        return 1;
+    }
+
+    server->players[server->api_conn.api->player_number - 1].client_pid = server->api_conn.api->client_pid;
+    strcpy(server->players[server->api_conn.api->player_number - 1].client_type,
+    server->api_conn.api->client_type);
+
+    select_random_position(server->game_grid,
+    &server->players[server->api_conn.api->player_number - 1].spawn_position);
+
+    // where are if conditions in case of problems with these funcs?
+
+    set_new_character_game_board(server,
+    &server->players[server->api_conn.api->player_number - 1].spawn_position,
+    &server->players[server->api_conn.api->player_number - 1].player_number + '0');
+
+    update_api_client(server, server->api_conn.api->player_number);
+
+// while loop on the client side until player number in the shared memory will be set
+
+    return 0;
+}
+
+uint32_t set_new_character_game_board(struct server_info * server,
+const struct pos_t * position, uint8_t figure){
+
+    if (server == NULL || position == NULL){
+
+        return 1;
+    }
+
+    if (position->x < 1 || position->x > GAME_WIDTH - 2 || position->y < 1
+    || position->y > GAME_HEIGHT - 2){
+
+        return 2;
+    }
+
+    if (NULL == strchr("1234A*ctTD", (int32_t)figure)){
+
+        return 3;
+    }
+
+    server->game_grid[position->x][position->y] = figure;
+
+    return 0;
+}
+
+uint32_t update_api_client(struct server_info * server, uint8_t client_num){
+
+    if (server == NULL){
+
+        return 1;
+    }
+
+    if (client_num < 1 || client_num > PLAYERS_NUM){
+
+        return 2;
+    }
+
+    for (int32_t i = 1; i < PLAYERS_NUM + 1; ++i){
+
+        if (i == client_num){
+
+            server->api_client[i - 1].api->coins_brought = server->players[i - 1].coins_brought;
+            server->api_client[i - 1].api->coins_carried = server->players[i - 1].coins_carried;
+            server->api_client[i - 1].api->deaths = server->players[i - 1].deaths;
+            server->api_client[i - 1].api->position = server->players[i - 1].curr_position;
+            strcpy(server->api_client[i - 1].api->type, server->players[i - 1].client_type);
+            server->api_client[i - 1].api->server_pid = server->server_pid;
+            server->api_client[i - 1].api->round_number = server->round_number;
+            server->api_client[i - 1].api->current_move = NO_MOVE;
+
+            set_client_game_board(server->game_grid, server->api_client[i - 1].api->game_grid,
+            &server->players[i - 1].curr_position);
+
+// what if set_client will go wrong? Here mutex can/should be used to be sure that
+// the same value is set to api and passed as a func parameter
+// clash with game cycle thread
+// except you set a proper condition in that thread
+
+            server->api_client[i - 1].api->player_number = server->players[i - 1].player_number;
+            server->api_conn.api->player_number = 0;
+            break;
+        }
+    }
+
+    return 0;
+}
+
+uint32_t set_client_game_board(uint8_t ** gm_board, uint8_t ** gm_board_cl,
+const struct pos_t * position){
+
+    if (gm_board == NULL || gm_board_cl == NULL){
+
+        return 1;
+    }
+
+    if (position->x < 1 || position->x > GAME_WIDTH - 2 || position->y < 1
+    || position->y > GAME_HEIGHT - 2){
+
+        return 2;
+    }
+
+    uint8_t x = 0;
+    uint8_t y = 0;
+
+    for (int32_t i = position->x - 2; i <= position->x + 2; ++i){
+        for (int32_t j = position->y - 2; j <= position->y + 2; ++j){
+
+            if (i < 0 || i >= GAME_WIDTH || j < 0 || j >= GAME_HEIGHT){
+
+                gm_board_cl[x][y] = '#';
+            }
+            else{
+
+                gm_board_cl[x][y] = gm_board[i][j];
+            }
+
+            ++y;
+        }
+
+        ++x;
+        y = 0;
     }
 
     return 0;
