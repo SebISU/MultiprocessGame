@@ -3,7 +3,7 @@
 
 uint32_t add_trea(struct trea_node ** head, uint8_t x, uint8_t y , uint32_t value){
     
-    if (head == NULL){
+    if (head == NULL || value == 0){    // just for > 0 values
 
         return 0;
     }
@@ -147,13 +147,12 @@ uint32_t init_shd_memories(struct api_wrap_t * api_client, struct api_wrap_conn 
         return 1;
     }
 
-        // could/should be in case program failed and unlinked memos
-        // shm_unlink(SHD_MEM_1);
-        // shm_unlink(SHD_MEM_2);
-        // shm_unlink(SHD_MEM_3);
-        // shm_unlink(SHD_MEM_4);
-        // shm_unlink(SHD_MEM_5);
-        // shm_unlink(SHD_MEM_CONN);
+    shm_unlink(SHD_MEM_1);
+    shm_unlink(SHD_MEM_2);
+    shm_unlink(SHD_MEM_3);
+    shm_unlink(SHD_MEM_4);
+    shm_unlink(SHD_MEM_5);
+    shm_unlink(SHD_MEM_CONN);
 
     int32_t status;
 
@@ -289,6 +288,141 @@ void destroy_shd_memories(struct api_wrap_t * api_client, struct api_wrap_conn *
     }
 }
 
+uint32_t init_semaphores(struct server_info * server){
+
+    if (server == NULL){
+
+        return 1;
+    }
+
+    sem_unlink(SEM_CONN_SERVER);
+
+    server->sem_server = sem_open(SEM_CONN_SERVER, O_CREAT | O_EXCL, 0600, 0);
+
+    if (server->sem_server == SEM_FAILED){
+
+        return 2;
+    }
+
+    sem_unlink(SEM_CONN_CLIENT);
+
+    server->sem_client = sem_open(SEM_CONN_CLIENT, O_CREAT | O_EXCL, 0600, 0);
+
+    if (server->sem_client == SEM_FAILED){
+
+        destroy_semaphores(server);
+        return 2;
+    }
+
+    sem_unlink(SEM_1);
+
+    server->sem_client_1 = sem_open(SEM_1, O_CREAT | O_EXCL, 0600, 0);
+
+    if (server->sem_client_1 == SEM_FAILED){
+
+        destroy_semaphores(server);
+        return 2;
+    }
+
+    sem_unlink(SEM_2);
+
+    server->sem_client_2 = sem_open(SEM_2, O_CREAT | O_EXCL, 0600, 0);
+
+    if (server->sem_client_2 == SEM_FAILED){
+
+        destroy_semaphores(server);
+        return 2;
+    }
+
+    sem_unlink(SEM_3);
+
+    server->sem_client_3 = sem_open(SEM_3, O_CREAT | O_EXCL, 0600, 0);
+
+    if (server->sem_client_3 == SEM_FAILED){
+
+        destroy_semaphores(server);
+        return 2;
+    }
+
+    sem_unlink(SEM_4);
+
+    server->sem_client_4 = sem_open(SEM_4, O_CREAT | O_EXCL, 0600, 0);
+
+    if (server->sem_client_4 == SEM_FAILED){
+
+        destroy_semaphores(server);
+        return 2;
+    }
+
+    sem_unlink(SEM_5);
+
+    server->sem_client_5 = sem_open(SEM_5, O_CREAT | O_EXCL, 0600, 0);
+
+    if (server->sem_client_5 == SEM_FAILED){
+
+        destroy_semaphores(server);
+        return 2;
+    }
+
+    if (sem_init(&server->sem_keybinding, 0, 0)){
+
+        destroy_semaphores(server);
+        return 2;
+    }
+
+    return 0;
+}
+
+void destroy_semaphores(struct server_info * server){
+
+    if (server != NULL){
+
+        if (server->sem_server != SEM_FAILED){
+
+            sem_close(server->sem_server);
+            sem_unlink(SEM_CONN_SERVER);
+        }
+
+        if (server->sem_client != SEM_FAILED){
+
+            sem_close(server->sem_client);
+            sem_unlink(SEM_CONN_CLIENT);
+        }
+
+        if (server->sem_client_1 != SEM_FAILED){
+
+            sem_close(server->sem_client_1);
+            sem_unlink(SEM_1);
+        }
+
+        if (server->sem_client_2 != SEM_FAILED){
+
+            sem_close(server->sem_client_2);
+            sem_unlink(SEM_2);
+        }
+
+        if (server->sem_client_3 != SEM_FAILED){
+
+            sem_close(server->sem_client_3);
+            sem_unlink(SEM_3);
+        }
+
+        if (server->sem_client_4 != SEM_FAILED){
+
+            sem_close(server->sem_client_4);
+            sem_unlink(SEM_4);
+        }
+
+        if (server->sem_client_5 != SEM_FAILED){
+
+            sem_close(server->sem_client_5);
+            sem_unlink(SEM_5);
+        }
+
+        sem_destroy(&server->sem_keybinding);
+    }
+}
+
 uint32_t select_random_position(uint8_t **gm_board, struct pos_t * position){
 
     if (gm_board == NULL || position == NULL){
@@ -301,12 +435,13 @@ uint32_t select_random_position(uint8_t **gm_board, struct pos_t * position){
     uint8_t x, y;
 
     // should add a condition in case of no free positions available
+    // 1300 fields in the board. 10000 loops as a limit?
 
     do{
 
         x = (rand() % (GAME_WIDTH - 2)) + 1;
         y = (rand() % (GAME_HEIGHT - 2)) + 1;
-    }while(gm_board[x][y] != ' ');
+    }while(gm_board[y][x] != ' ');
 
     position->x = x;
     position->y = y;
@@ -314,7 +449,7 @@ uint32_t select_random_position(uint8_t **gm_board, struct pos_t * position){
     return 0;
 }
 
-struct server_info * init_server_info(uint8_t ** gm_board){
+struct server_info * init_server(uint8_t ** gm_board){
 
     if (gm_board == NULL){
 
@@ -338,6 +473,7 @@ struct server_info * init_server_info(uint8_t ** gm_board){
     server->trea_list_head = NULL;
     server->server_pid = getpid();
     server->game_grid = gm_board;
+    server->key_pressed = 0;
 
     if (0 < set_new_character_game_board(server, &server->camp_position, 'A')){
 
@@ -345,13 +481,19 @@ struct server_info * init_server_info(uint8_t ** gm_board){
         return NULL;
     }
 
-    for (int32_t i = 0; i < PLAYERS_NUM + 1; ++i){
+    for (int32_t i = 0; i < PLAYERS_NUM; ++i){
 
-        if (1 == reset_player_info(server->players + i)){
+        if (0 < reset_player_info(server->players + i)){
 
             free(server);
             return NULL;
         }
+    }
+
+    if (0 < reset_beasts_info(&server->beasts)){
+
+        free(server);
+        return NULL;
     }
 
     if (0 < init_shd_memories(server->api_client, &server->api_conn)){
@@ -367,7 +509,27 @@ struct server_info * init_server_info(uint8_t ** gm_board){
         return NULL;
     }
 
+    for (int32_t i = 0; i < PLAYERS_NUM + 1; ++i){
+
+        if (0 < reset_api_client((server->api_client + i)->api)){
+
+            destroy_shd_memories(server->api_client, &server->api_conn);
+            free(server);
+            return NULL;
+        }
+    }
+
     return server;
+}
+
+void destroy_server(struct server_info * server){
+
+    if (server != NULL){
+
+        destroy_semaphores(server);
+        destroy_shd_memories(server->api_client, &server->api_conn);
+        free(server);
+    }
 }
 
 uint32_t reset_player_info(struct client_info * player){
@@ -394,57 +556,75 @@ uint32_t reset_player_info(struct client_info * player){
     return 0;
 };
 
-uint32_t set_api_client(struct server_info * server){
+uint32_t reset_beasts_info(struct beasts_t * beasts){
+
+    if (beasts == NULL){
+
+        return 1;
+    }
+
+    beasts->beasts_pid = 0;
+    beasts->client_number = 0;
+
+    for (int32_t i = 0; i < BEASTS_MAX_NUM; ++i){
+
+        (beasts->beasts + i)->in_game = 0; // 0  means not in game
+    }
+
+    return 0;
+}
+
+uint32_t reset_api_client(struct api_t * api_client){
+
+    if (api_client == NULL){
+
+        return 1;
+    }
+
+    api_client->round_number = 0;
+    api_client->server_pid = 0;
+    api_client->deaths = 0;
+    api_client->coins_carried = 0;
+    api_client->coins_brought = 0;
+
+    for (int32_t i = 0; i < BEASTS_MAX_NUM; ++i){
+
+        (api_client->client_data + i)->position.x = 0;
+        (api_client->client_data + i)->position.y = 0;
+        (api_client->client_data + i)->current_move = NO_MOVE;
+    }
+
+    strcpy(api_client->type, "---");
+    api_client->player_number = 0;
 
 
-
+    return 0;
 }
 
 void * handle_connections(void * svr){
 
-    //what if server == NULL, cannot stop server because you don't have any info, data
+    if (svr == NULL){   // for sure, too detailed?
 
-    // think how to stop this thread properly. Easy without semaphors ...
+        return NULL;
+    }
+
+    // think how to stop this thread properly. I don't have to stop this process.
+    // It will be killed when I stop the main thread.
 
     struct server_info * server = (struct server_info *)svr;
 
-    sem_unlink(SEM_CONN_SERVER); // for sure, maybe does not required
-    sem_unlink(SEM_CONN_CLIENT); // if sem is opened somewhere it still runs until it will be closed
-
-    server->api_conn.api->sem_server = sem_open(SEM_CONN_SERVER, O_CREAT | O_EXCL, 0600, 1);
-    
-    if (server->api_conn.api->sem_server == SEM_FAILED){
-
-        return NULL;
-    }
-
-    server->api_conn.api->sem_client = sem_open(SEM_CONN_CLIENT, O_CREAT | O_EXCL, 0600, 0);
-    
-    if (server->api_conn.api->sem_client == SEM_FAILED){
-
-        sem_close(server->api_conn.api->sem_server);
-        sem_unlink(SEM_CONN_SERVER);
-        return NULL;
-    }
-
     while(1){
 
-        if (update_api_conn(server)){   // think it over
-
-            sem_close(server->api_conn.api->sem_server);
-            sem_unlink(SEM_CONN_SERVER);
-            sem_close(server->api_conn.api->sem_client);
-            sem_unlink(SEM_CONN_CLIENT);
+        if (update_api_conn(server)){
 
             return NULL;
         }
 
-        sem_wait(server->api_conn.api->sem_client);
+        sem_post(server->sem_server);
 
-        accept_new_connection(server);  // what happen if connecting failed
+        sem_wait(server->sem_client);
 
-        sem_post(server->api_conn.api->sem_server);
-
+        accept_new_connection(server);  // what will happen if connecting fail
     }
 
     return NULL;
@@ -464,14 +644,23 @@ uint32_t reset_api_conn(struct server_info * server){
     return 0;
 }
 
-uint32_t update_api_conn(struct server_info * server){  // add statements for beasts_in_game
+uint32_t update_api_conn(struct server_info * server){
 
     if (server == NULL){
 
         return 1;
     }
 
-    if (server->api_conn.api->player_number != 0){
+    if (server->beasts.client_number > 0){
+
+        server->api_conn.api->beasts_in_game = 1;
+    }
+    else{
+
+        server->api_conn.api->beasts_in_game = 0;
+    }
+
+    if (server->api_conn.api->player_number != 0){ // accepted connection sets player_num to 0
 
         server->api_conn.api->client_pid = 0;
         return 0;
@@ -488,8 +677,6 @@ uint32_t update_api_conn(struct server_info * server){  // add statements for be
     }
 
     if (i < PLAYERS_NUM){
-        
-        reset_player_info(server->players + i);
 
         server->api_conn.api->player_number = i + 1;
         server->players[i].player_number = i + 1; // mutex probably does not required
@@ -502,18 +689,11 @@ uint32_t update_api_conn(struct server_info * server){  // add statements for be
 
 uint32_t accept_new_connection(struct server_info * server){
 
-    // can add a possibility to many attempts like in the web requests
+    // can add a possibility for many attempts like in the web requests
 
     if (server == NULL){
 
         return 1;
-    }
-
-    if (strcmp(server->api_conn.api->client_type, "HUMAN") != 0 &&
-    strcmp(server->api_conn.api->client_type, "CPU") != 0 &&
-    strcmp(server->api_conn.api->client_type, "BEAST") != 0){
-
-        return 2;
     }
 
     if (server->api_conn.api->client_pid == 0){
@@ -521,22 +701,46 @@ uint32_t accept_new_connection(struct server_info * server){
         return 3;
     }
 
-    int32_t i;
+    if (strcmp(server->api_conn.api->client_type, "HUMAN") == 0 ||
+    strcmp(server->api_conn.api->client_type, "CPU") == 0){
 
-    for (i = 0; i < PLAYERS_NUM; ++i){
+        uint32_t i;
 
-        if (server->players[i].player_number == server->api_conn.api->player_number){
+        for (i = 0; i < PLAYERS_NUM; ++i){
 
-            prepare_new_player(server);
-            reset_api_conn(server);
+            if (server->players[i].player_number == server->api_conn.api->player_number){
 
-            break;
+                reset_player_info(server->players + i);
+                prepare_new_player(server);
+                update_api_client(server, i + 1);
+                server->api_conn.api->player_number = 0;
+
+                break;
+            }
+        }
+
+        if (i == PLAYERS_NUM){
+
+            return 4;
+        }
+
+    }
+    else if (strcmp(server->api_conn.api->client_type, "BEAST") == 0){
+
+        if (server->beasts.client_number > 0){
+
+            return 5;
+        }
+        else{
+
+            reset_beasts_info(&server->beasts);
+            prepare_beast(server);
+            update_api_client(server, PLAYERS_NUM + 1u);
         }
     }
+    else {
 
-    if (i == PLAYERS_NUM){
-
-        return 4;
+        return 2;
     }
 
     return 0;
@@ -549,22 +753,140 @@ uint32_t prepare_new_player(struct server_info * server){
         return 1;
     }
 
-    server->players[server->api_conn.api->player_number - 1].client_pid = server->api_conn.api->client_pid;
+    server->players[server->api_conn.api->player_number - 1].player_number
+    = server->api_conn.api->player_number;
+    server->players[server->api_conn.api->player_number - 1].client_pid
+    = server->api_conn.api->client_pid;
     strcpy(server->players[server->api_conn.api->player_number - 1].client_type,
     server->api_conn.api->client_type);
 
     select_random_position(server->game_grid,
     &server->players[server->api_conn.api->player_number - 1].spawn_position);
 
+    server->players[server->api_conn.api->player_number - 1].curr_position.x =
+    server->players[server->api_conn.api->player_number - 1].spawn_position.x;
+    server->players[server->api_conn.api->player_number - 1].curr_position.y =
+    server->players[server->api_conn.api->player_number - 1].spawn_position.y;
+
     // where are if conditions in case of problems with these funcs?
 
     set_new_character_game_board(server,
     &server->players[server->api_conn.api->player_number - 1].spawn_position,
-    &server->players[server->api_conn.api->player_number - 1].player_number + '0');
+    server->players[server->api_conn.api->player_number - 1].player_number + '0');
 
-    update_api_client(server, server->api_conn.api->player_number);
+    return 0;
+}
 
-// while loop on the client side until player number in the shared memory will be set
+uint32_t prepare_beast(struct server_info * server){
+
+    if (server == NULL){
+
+        return 1;
+    }
+
+    server->beasts.beasts_pid = server->api_conn.api->client_pid;
+    server->beasts.client_number = 5;
+
+    return 0;
+}
+
+// killing the beast has to be managed on the server side
+uint32_t update_api_client(struct server_info * server, uint8_t client_num){
+
+    if (server == NULL){
+
+        return 1;
+    }
+
+    if (client_num > 0 && client_num <= PLAYERS_NUM){
+
+        if (server->players[client_num - 1].player_number > 0){ // shouldn't cause a problem
+
+            server->api_client[client_num - 1].api->round_number = server->round_number;
+            server->api_client[client_num - 1].api->server_pid = server->server_pid;
+            server->api_client[client_num - 1].api->deaths =
+            server->players[client_num - 1].deaths;
+            server->api_client[client_num - 1].api->coins_carried =
+            server->players[client_num - 1].coins_carried;
+            server->api_client[client_num - 1].api->coins_brought =
+            server->players[client_num - 1].coins_brought;
+            server->api_client[client_num - 1].api->client_data->position.x =
+            server->players[client_num - 1].curr_position.x;
+            server->api_client[client_num - 1].api->client_data->position.y =
+            server->players[client_num - 1].curr_position.y;
+            server->api_client[client_num - 1].api->client_data->current_move = NO_MOVE;
+            set_client_game_board(server->game_grid,
+            server->api_client[client_num - 1].api->client_data->game_grid,
+            &server->api_client[client_num - 1].api->client_data->position);
+            strcpy(server->api_client[client_num - 1].api->type,
+            server->players[client_num - 1].client_type);
+            server->api_client[client_num - 1].api->player_number =
+            server->players[client_num - 1].player_number;
+        }
+    }
+    else if (client_num == PLAYERS_NUM + 1){
+
+        if (server->beasts.client_number > 0){
+
+            server->api_client[client_num - 1].api->round_number = server->round_number;
+            server->api_client[client_num - 1].api->server_pid = server->server_pid;
+            strcpy(server->api_client[client_num - 1].api->type, "BEAST");
+            server->api_client[client_num - 1].api->player_number =
+            server->beasts.client_number;
+
+            for (int32_t i = 0; i < BEASTS_MAX_NUM; ++i){
+
+                if ((server->beasts.beasts + i)->in_game){
+
+                    server->api_client[client_num - 1].api->client_data[i].position.x =
+                    server->beasts.beasts[i].position.x;
+                    server->api_client[client_num - 1].api->client_data->position.y =
+                    server->beasts.beasts[i].position.y;
+                    server->api_client[client_num - 1].api->client_data[i].current_move = NO_MOVE;
+                    set_client_game_board(server->game_grid,
+                    server->api_client[client_num - 1].api->client_data[i].game_grid,
+                    &server->beasts.beasts[i].position);
+                }
+                else{
+
+                    server->api_client[client_num - 1].api->client_data[i].position.x = 0;
+                    server->api_client[client_num - 1].api->client_data[i].position.y = 0;
+                }
+            }
+        }
+    }
+    else{
+
+        return 2;
+    }
+
+// what if set_client will go wrong? Here mutex can/should be used to be sure that
+// the same value is set to api and passed as a func parameter
+// clash with game cycle thread
+// except you set a proper condition in that thread
+
+    return 0;
+}
+
+uint32_t update_all_api_client(struct server_info * server){
+
+    if (server == NULL){
+
+        return 1;
+    }
+
+    for (uint8_t i = 1; i <= PLAYERS_NUM; ++i){
+
+        if (update_api_client(server, i)){
+
+            return 2;
+        }
+    }
+
+    if (update_api_client(server, PLAYERS_NUM + 1)){
+
+        return 2;
+    }
 
     return 0;
 }
@@ -583,54 +905,12 @@ const struct pos_t * position, uint8_t figure){
         return 2;
     }
 
-    if (NULL == strchr("1234A*ctTD", (int32_t)figure)){
+    if (NULL == strchr("1234A*ctTD", (int32_t)figure)){ // casted because strchr takes int, cherry on top...
 
         return 3;
     }
 
-    server->game_grid[position->x][position->y] = figure;
-
-    return 0;
-}
-
-uint32_t update_api_client(struct server_info * server, uint8_t client_num){
-
-    if (server == NULL){
-
-        return 1;
-    }
-
-    if (client_num < 1 || client_num > PLAYERS_NUM){
-
-        return 2;
-    }
-
-    for (int32_t i = 1; i < PLAYERS_NUM + 1; ++i){
-
-        if (i == client_num){
-
-            server->api_client[i - 1].api->coins_brought = server->players[i - 1].coins_brought;
-            server->api_client[i - 1].api->coins_carried = server->players[i - 1].coins_carried;
-            server->api_client[i - 1].api->deaths = server->players[i - 1].deaths;
-            server->api_client[i - 1].api->position = server->players[i - 1].curr_position;
-            strcpy(server->api_client[i - 1].api->type, server->players[i - 1].client_type);
-            server->api_client[i - 1].api->server_pid = server->server_pid;
-            server->api_client[i - 1].api->round_number = server->round_number;
-            server->api_client[i - 1].api->current_move = NO_MOVE;
-
-            set_client_game_board(server->game_grid, server->api_client[i - 1].api->game_grid,
-            &server->players[i - 1].curr_position);
-
-// what if set_client will go wrong? Here mutex can/should be used to be sure that
-// the same value is set to api and passed as a func parameter
-// clash with game cycle thread
-// except you set a proper condition in that thread
-
-            server->api_client[i - 1].api->player_number = server->players[i - 1].player_number;
-            server->api_conn.api->player_number = 0;
-            break;
-        }
-    }
+    server->game_grid[position->y][position->x] = figure;
 
     return 0;
 }
@@ -652,10 +932,10 @@ const struct pos_t * position){
     uint8_t x = 0;
     uint8_t y = 0;
 
-    for (int32_t i = position->x - 2; i <= position->x + 2; ++i){
-        for (int32_t j = position->y - 2; j <= position->y + 2; ++j){
+    for (int32_t i = position->y - 2; i <= position->y + 2; ++i){
+        for (int32_t j = position->x - 2; j <= position->x + 2; ++j){
 
-            if (i < 0 || i >= GAME_WIDTH || j < 0 || j >= GAME_HEIGHT){
+            if (i < 0 || i >= GAME_HEIGHT || j < 0 || j >= GAME_WIDTH){
 
                 gm_board_cl[x][y] = '#';
             }
@@ -669,6 +949,531 @@ const struct pos_t * position){
 
         ++x;
         y = 0;
+    }
+
+    return 0;
+}
+
+// server_keybinding manages keybindings completely. Works on server struct.
+// Uses mutexes when sth new is added to the game. When q/Q pressed thread terminates
+// with keypressed = q set in server struct. Main thread checks if q is set. If so
+// terminates the game.
+// Maybe kill the game in this thread?
+// Does not required, but intern semaphore should be posted() in main thread just after
+// checking the condition so to thread has ASAP time to catch the key and perform operations
+
+void * server_keybinding(void * svr){
+
+/* can print info in console when sth went wrong with setting new figures */
+
+    struct server_info * server = (struct server_info *)svr;
+
+    while(1){
+
+        //improve this, now it does not work
+        server->key_pressed = getch();
+
+        if (server->key_pressed == 'q' || server->key_pressed == 'Q'){
+
+            return NULL;
+        }
+        else if (server->key_pressed == 'b' || server->key_pressed == 'B'){
+//mutex in each elif
+            add_new_beast(server);
+        }
+        else if (server->key_pressed == 'c'){
+
+            add_new_coin(server);
+        }
+        else if (server->key_pressed == 't'){
+
+            add_new_small_treasure(server);
+        }
+        else if (server->key_pressed == 'T'){
+
+            add_new_big_treasure(server);
+        }
+
+        sem_wait(&server->sem_keybinding);
+    }
+
+    return NULL;
+}
+
+uint32_t add_new_beast(struct server_info * server){
+
+    if (server == NULL){
+
+        return 1;
+    }
+
+    struct pos_t new_beast;
+
+    if (server->beasts.client_number == 0){
+
+        return 2;
+    }
+
+    int32_t i;
+
+    for (i = 0; i < BEASTS_MAX_NUM; ++i){
+
+        if (server->beasts.beasts[i].in_game == 0){
+
+            break;
+        }
+    }
+
+    if (i == BEASTS_MAX_NUM){
+
+        return 3;
+    }
+
+    if (select_random_position(server->game_grid, &new_beast)){
+
+        return 4;
+    }
+
+    server->beasts.beasts[i].position.x = new_beast.x;
+    server->beasts.beasts[i].position.y = new_beast.y;
+    server->beasts.beasts[i].in_game = 1;
+    server->beasts.beasts[i].init_round_number = server->round_number;
+    set_new_character_game_board(server, &new_beast, "*");
+
+    return 0;
+}
+
+uint32_t add_new_coin(struct server_info * server){
+
+    if (server == NULL){
+
+        return 1;
+    }
+
+    struct pos_t new_coin;
+
+    if (select_random_position(server->game_grid, &new_coin)){
+
+        return 2;
+    }
+
+    if (!add_trea(&server->trea_list_head, new_coin.x, new_coin.y, 1)){
+
+        return 3;
+    }
+
+    if (set_new_character_game_board(server, &new_coin, "c")){
+
+        fetch_trea(&server->trea_list_head, new_coin.x, new_coin.y);
+        return 4;
+    }
+
+    return 0;
+}
+
+uint32_t add_new_small_treasure(struct server_info * server){
+
+    if (server == NULL){
+
+        return 1;
+    }
+
+    struct pos_t new_sm_trea;
+
+    if (select_random_position(server->game_grid, &new_sm_trea)){
+
+        return 2;
+    }
+
+    if (!add_trea(&server->trea_list_head, new_sm_trea.x, new_sm_trea.y, 10)){
+
+        return 3;
+    }
+
+    if (set_new_character_game_board(server, &new_sm_trea, "t")){
+
+        fetch_trea(&server->trea_list_head, new_sm_trea.x, new_sm_trea.y);
+        return 4;
+    }
+
+    return 0;
+}
+
+uint32_t add_new_big_treasure(struct server_info * server){
+
+    if (server == NULL){
+
+        return 1;
+    }
+
+    struct pos_t new_bg_trea;
+
+    if (select_random_position(server->game_grid, &new_bg_trea)){
+
+        return 2;
+    }
+
+    if (!add_trea(&server->trea_list_head, new_bg_trea.x, new_bg_trea.y, 50)){
+
+        return 3;
+    }
+
+    if (set_new_character_game_board(server, &new_bg_trea, "T")){
+
+        fetch_trea(&server->trea_list_head, new_bg_trea.x, new_bg_trea.y);
+        return 4;
+    }
+
+    return 0;
+}
+
+uint32_t move_beast(struct server_info * server, uint8_t beast_num){
+
+    if (server == NULL || server->game_grid == NULL || beast_num > BEASTS_MAX_NUM){
+
+        return 1;
+    }
+
+    struct pos_t temp_pos;
+    uint8_t tmp_num = 0;
+
+    if (server->api_client[PLAYERS_NUM].api->client_data[beast_num - 1].current_move
+    == LEFT){
+
+        temp_pos.x = server->beasts.beasts[beast_num - 1].position.x - 1;
+        temp_pos.y = server->beasts.beasts[beast_num - 1].position.y;
+    }
+    else if (server->api_client[PLAYERS_NUM].api->client_data[beast_num - 1].current_move
+    == UP){
+
+        temp_pos.x = server->beasts.beasts[beast_num - 1].position.x;
+        temp_pos.y = server->beasts.beasts[beast_num - 1].position.y - 1;
+    }
+    else if (server->api_client[PLAYERS_NUM].api->client_data[beast_num - 1].current_move
+    == RIGHT){
+
+        temp_pos.x = server->beasts.beasts[beast_num - 1].position.x + 1;
+        temp_pos.y = server->beasts.beasts[beast_num - 1].position.y;
+    }
+    else if (server->api_client[PLAYERS_NUM].api->client_data[beast_num - 1].current_move
+    == DOWN){
+
+        temp_pos.x = server->beasts.beasts[beast_num - 1].position.x;
+        temp_pos.y = server->beasts.beasts[beast_num - 1].position.y + 1;
+    }
+    else {
+
+        return 0;
+    }
+
+    if (server->game_grid[temp_pos.y][temp_pos.x] == ' '){
+
+        set_new_character_game_board(server, 
+        &server->beasts.beasts[beast_num - 1].position, ' ');
+        set_new_character_game_board(server, 
+        &temp_pos, '*');
+        server->beasts.beasts[beast_num - 1].position.x = temp_pos.x;
+        server->beasts.beasts[beast_num - 1].position.y = temp_pos.y;
+    }
+    // better or not?
+    // else if (server->game_grid[temp_pos.y][temp_pos.x] == 'c' 
+    // || server->game_grid[temp_pos.y][temp_pos.x] == 't' 
+    // || server->game_grid[temp_pos.y][temp_pos.x] == 'T'){
+
+    //     fetch_trea(&server->trea_list_head, temp_pos.x, temp_pos.y);
+    //     set_new_character_game_board(server, 
+    //     &server->beasts.beasts[beast_num - 1].position, ' ');
+    //     set_new_character_game_board(server, 
+    //     &temp_pos, '*');
+    //     server->beasts.beasts[beast_num - 1].position.x = temp_pos.x;
+    //     server->beasts.beasts[beast_num - 1].position.y = temp_pos.y;
+    // }
+    // can rewrite using value - '0' - 1, but now code is clearer
+    else if (server->game_grid[temp_pos.y][temp_pos.x] == '1'){
+
+        tmp_num = 1;
+    }
+    else if (server->game_grid[temp_pos.y][temp_pos.x] == '2'){
+
+        tmp_num = 2;
+    }
+    else if (server->game_grid[temp_pos.y][temp_pos.x] == '3'){
+
+        tmp_num = 3;
+    }
+    else if (server->game_grid[temp_pos.y][temp_pos.x] == '4'){
+
+        tmp_num = 4;
+    }
+    
+    if (tmp_num > 0){
+
+        if (server->players[tmp_num - 1].coins_carried > 0){
+
+            set_new_character_game_board(server, 
+            &temp_pos, 'D');
+            add_trea(&server->trea_list_head, temp_pos.x, temp_pos.y,
+            server->players[tmp_num - 1].coins_carried);
+            server->players[tmp_num - 1].coins_carried = 0;
+        }
+        else{
+
+            set_new_character_game_board(server, 
+            &server->beasts.beasts[beast_num - 1].position, ' ');
+            set_new_character_game_board(server, 
+            &temp_pos, '*');
+            server->beasts.beasts[beast_num - 1].position.x = temp_pos.x;
+            server->beasts.beasts[beast_num - 1].position.y = temp_pos.y;
+        }
+
+        temp_pos.x = server->players[tmp_num - 1].spawn_position.x;
+        temp_pos.y = server->players[tmp_num - 1].spawn_position.y;
+        server->players[tmp_num - 1].deaths++;
+        server->players[tmp_num - 1].prev_position.x =
+        server->players[tmp_num - 1].curr_position.x;
+        server->players[tmp_num - 1].prev_position.y =
+        server->players[tmp_num - 1].curr_position.y;
+        server->players[tmp_num - 1].curr_position.x = temp_pos.x;
+        server->players[tmp_num - 1].curr_position.y = temp_pos.y;
+        server->players[tmp_num - 1].into_bushes = 0;
+
+        if (server->game_grid[temp_pos.y][temp_pos.x] == 'D'
+        || server->game_grid[temp_pos.y][temp_pos.x] == 'c'
+        || server->game_grid[temp_pos.y][temp_pos.x] == 't'
+        || server->game_grid[temp_pos.y][temp_pos.x] == 'T'){
+
+            server->players[tmp_num - 1].coins_carried +=
+            fetch_trea(&server->trea_list_head, temp_pos.x, temp_pos.y);
+        }
+        else if (server->game_grid[temp_pos.y][temp_pos.x] == '*'){
+
+            for (int32_t i = 0; i < BEASTS_MAX_NUM; ++i){
+
+                if (server->beasts.beasts[i].position.x == temp_pos.x
+                && server->beasts.beasts[i].position.y == temp_pos.y){
+
+                    server->beasts.beasts[i].in_game = 0;
+                    break;
+                }
+            }
+        }
+
+        set_new_character_game_board(server, &temp_pos, tmp_num + '0');
+
+    }
+
+    return 0;
+}
+
+uint32_t move_player(struct server_info * server, uint8_t player_num){
+
+    if (server == NULL || server->game_grid == NULL || player_num > PLAYERS_NUM){
+
+        return 1;
+    }
+
+    struct pos_t temp_pos;
+
+    if (server->api_client[player_num - 1].api->client_data->current_move == LEFT){
+
+        temp_pos.x = server->players[player_num - 1].curr_position.x - 1;
+        temp_pos.y = server->players[player_num - 1].curr_position.y;
+    }
+    else if (server->api_client[player_num - 1].api->client_data->current_move == UP){
+
+        temp_pos.x = server->players[player_num - 1].curr_position.x;
+        temp_pos.y = server->players[player_num - 1].curr_position.y - 1;
+    }
+    else if (server->api_client[player_num - 1].api->client_data->current_move == RIGHT){
+
+        temp_pos.x = server->players[player_num - 1].curr_position.x + 1;
+        temp_pos.y = server->players[player_num - 1].curr_position.y;
+    }
+    else if (server->api_client[player_num - 1].api->client_data->current_move == DOWN){
+
+        temp_pos.x = server->players[player_num - 1].curr_position.x;
+        temp_pos.y = server->players[player_num - 1].curr_position.y + 1;
+    }
+    else {
+
+        server->players[player_num - 1].prev_position.x =
+        server->players[player_num - 1].curr_position.x;
+        server->players[player_num - 1].prev_position.y =
+        server->players[player_num - 1].curr_position.y;
+        server->players[player_num - 1].into_bushes = 0; // consider this, works both ways
+
+        return 0;
+    }
+
+    if (server->game_grid[temp_pos.y][temp_pos.x] == ' '){
+
+        set_new_character_game_board(server, 
+        &server->players[player_num - 1].curr_position, ' ');
+        set_new_character_game_board(server, &temp_pos, player_num + '0');
+        server->players[player_num - 1].prev_position.x =
+        server->players[player_num - 1].curr_position.x;
+        server->players[player_num - 1].prev_position.y =
+        server->players[player_num - 1].curr_position.y;
+        server->players[player_num - 1].curr_position.x = 
+        temp_pos.x;
+        server->players[player_num - 1].curr_position.y = 
+        temp_pos.y;
+        server->players[player_num - 1].into_bushes = 0;
+    }
+    else if (server->game_grid[temp_pos.y][temp_pos.x] == 'A'){
+
+        server->players[player_num - 1].prev_position.x =
+        server->players[player_num - 1].curr_position.x;
+        server->players[player_num - 1].prev_position.y =
+        server->players[player_num - 1].curr_position.y;
+        server->players[player_num - 1].coins_brought +=
+        server->players[player_num - 1].coins_carried;
+        server->players[player_num - 1].coins_carried = 0;
+        server->players[player_num - 1].into_bushes = 0;
+    }
+    else if (server->game_grid[temp_pos.y][temp_pos.x] == 'D'
+    || server->game_grid[temp_pos.y][temp_pos.x] == 'c'
+    || server->game_grid[temp_pos.y][temp_pos.x] == 't'
+    || server->game_grid[temp_pos.y][temp_pos.x] == 'T'){
+
+        set_new_character_game_board(server, 
+        &server->players[player_num - 1].curr_position, ' ');
+        set_new_character_game_board(server, &temp_pos, player_num + '0');
+        server->players[player_num - 1].prev_position.x =
+        server->players[player_num - 1].curr_position.x;
+        server->players[player_num - 1].prev_position.y =
+        server->players[player_num - 1].curr_position.y;
+        server->players[player_num - 1].curr_position.x = 
+        temp_pos.x;
+        server->players[player_num - 1].curr_position.y = 
+        temp_pos.y;
+        server->players[player_num - 1].into_bushes = 0;
+
+        server->players[player_num - 1].coins_carried +=
+        fetch_trea(&server->trea_list_head, temp_pos.x, temp_pos.y);
+    }
+    else if (server->game_grid[temp_pos.y][temp_pos.x] == '~'){
+
+        if (server->players[player_num - 1].prev_position.x ==
+        server->players[player_num - 1].curr_position.x
+        && server->players[player_num - 1].prev_position.y ==
+        server->players[player_num - 1].curr_position.y
+        && server->players[player_num - 1].into_bushes == 1){
+
+            set_new_character_game_board(server, 
+            &server->players[player_num - 1].curr_position, ' ');
+            set_new_character_game_board(server, &temp_pos, player_num + '0');
+            server->players[player_num - 1].curr_position.x = 
+            temp_pos.x;
+            server->players[player_num - 1].curr_position.y = 
+            temp_pos.y;
+            server->players[player_num - 1].into_bushes = 0;
+        }
+        else{
+            server->players[player_num - 1].prev_position.x =
+            server->players[player_num - 1].curr_position.x;
+            server->players[player_num - 1].prev_position.y =
+            server->players[player_num - 1].curr_position.y;
+            server->players[player_num - 1].into_bushes = 1;
+        }
+    }
+    else if (server->game_grid[temp_pos.y][temp_pos.x] == '*'){
+
+        if (server->players[player_num - 1].coins_carried > 0){
+
+            set_new_character_game_board(server, 
+            &server->players[player_num - 1].curr_position, 'D');
+            add_trea(&server->trea_list_head,
+            server->players[player_num - 1].curr_position.x,
+            server->players[player_num - 1].curr_position.y,
+            server->players[player_num - 1].coins_carried);
+            server->players[player_num - 1].coins_carried = 0;
+        }
+        else{
+
+            set_new_character_game_board(server, 
+            &server->players[player_num - 1].curr_position, ' ');
+        }
+
+        temp_pos.x = server->players[player_num - 1].spawn_position.x;
+        temp_pos.y = server->players[player_num - 1].spawn_position.y;
+        server->players[player_num - 1].deaths++;
+        server->players[player_num - 1].prev_position.x =
+        server->players[player_num - 1].curr_position.x;
+        server->players[player_num - 1].prev_position.y =
+        server->players[player_num - 1].curr_position.y;
+        server->players[player_num - 1].curr_position.x = temp_pos.x;
+        server->players[player_num - 1].curr_position.y = temp_pos.y;
+        server->players[player_num - 1].into_bushes = 0;
+
+        if (server->game_grid[temp_pos.y][temp_pos.x] == 'D'
+        || server->game_grid[temp_pos.y][temp_pos.x] == 'c'
+        || server->game_grid[temp_pos.y][temp_pos.x] == 't'
+        || server->game_grid[temp_pos.y][temp_pos.x] == 'T'){
+
+            server->players[player_num - 1].coins_carried +=
+            fetch_trea(&server->trea_list_head, temp_pos.x, temp_pos.y);
+        }
+        else if (server->game_grid[temp_pos.y][temp_pos.x] == '*'){
+
+            for (int32_t i = 0; i < BEASTS_MAX_NUM; ++i){
+
+                if (server->beasts.beasts[i].position.x == temp_pos.x
+                && server->beasts.beasts[i].position.y == temp_pos.y){
+
+                    server->beasts.beasts[i].in_game = 0;
+                    break;
+                }
+            }
+        }
+
+        set_new_character_game_board(server, &temp_pos, player_num + '0');
+    }
+    else if (server->game_grid[temp_pos.y][temp_pos.x] == '1'
+    || server->game_grid[temp_pos.y][temp_pos.x] == '2'
+    || server->game_grid[temp_pos.y][temp_pos.x] == '3'
+    || server->game_grid[temp_pos.y][temp_pos.x] == '4'){
+
+        add_trea(&server->trea_list_head, temp_pos.x, temp_pos.y,
+        server->players[player_num - 1].coins_carried +
+        server->players[server->game_grid[temp_pos.y][temp_pos.x] - '0' - 1].coins_carried);
+        server->players[player_num - 1].coins_carried = 0;
+        server->players[server->game_grid[temp_pos.y][temp_pos.x] - '0' - 1].coins_carried = 0;
+        server->players[player_num - 1].deaths++;
+        server->players[server->game_grid[temp_pos.y][temp_pos.x] - '0' - 1].deaths++;
+        server->players[player_num - 1].prev_position.x =
+        server->players[player_num - 1].curr_position.x;
+        server->players[player_num - 1].prev_position.y =
+        server->players[player_num - 1].curr_position.y;
+        server->players[server->game_grid[temp_pos.y][temp_pos.x] - '0' - 1].prev_position.x =
+        server->players[server->game_grid[temp_pos.y][temp_pos.x] - '0' - 1].curr_position.x;
+        server->players[server->game_grid[temp_pos.y][temp_pos.x] - '0' - 1].prev_position.y =
+        server->players[server->game_grid[temp_pos.y][temp_pos.x] - '0' - 1].curr_position.y;
+        server->players[player_num - 1].curr_position.x =
+        server->players[player_num - 1].spawn_position.x;
+        server->players[player_num - 1].curr_position.y =
+        server->players[player_num - 1].spawn_position.y;
+        server->players[server->game_grid[temp_pos.y][temp_pos.x] - '0' - 1].curr_position.x =
+        server->players[server->game_grid[temp_pos.y][temp_pos.x] - '0' - 1].spawn_position.x;
+        server->players[server->game_grid[temp_pos.y][temp_pos.x] - '0' - 1].curr_position.y =
+        server->players[server->game_grid[temp_pos.y][temp_pos.x] - '0' - 1].spawn_position.y;
+        server->players[player_num - 1].into_bushes = 0;
+        server->players[server->game_grid[temp_pos.y][temp_pos.x] - '0' - 1].into_bushes = 0;
+
+        set_new_character_game_board(server, 
+        &server->players[player_num - 1].curr_position, player_num + '0');
+        set_new_character_game_board(server, 
+        &server->players[server->game_grid[temp_pos.y][temp_pos.x] - '0' - 1].curr_position,
+        player_num + '0');
+        set_new_character_game_board(server, &temp_pos, 'D');
+    }
+    else if (server->game_grid[temp_pos.y][temp_pos.x] == '#'){ // else could be enough
+
+        server->players[player_num - 1].prev_position.x =
+        server->players[player_num - 1].curr_position.x;
+        server->players[player_num - 1].prev_position.y =
+        server->players[player_num - 1].curr_position.y;
+        server->players[player_num - 1].into_bushes = 0;
     }
 
     return 0;

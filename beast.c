@@ -7,7 +7,7 @@ int main(void){
 
     if (handle == NULL){
 
-        printf("Problem with info connection");
+        printf("\n\nProblem with info connection\n\n");
         return 1;
     }
 
@@ -17,7 +17,7 @@ int main(void){
 
         sem_post(handle->sem_client);
         destroy_handle(handle);
-        printf("SERVER IS FULL\n");
+        printf("\n\nBEAST ALREADY CONNECTED\n\n");
         return 2;
     }
 
@@ -27,7 +27,7 @@ int main(void){
 
         sem_post(handle->sem_client);
         destroy_handle(handle);
-        printf("Problem with main connection\n");
+        printf("\n\nProblem with main connection\n\n");
         return 3;
     }
 

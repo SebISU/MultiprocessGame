@@ -20,6 +20,7 @@
 #define CLIENT_POS_X 2
 #define CLIENT_POS_Y 2
 #define BEASTS_MAX_NUM 10
+#define BEAST_NUM_ROUNDS 1000
 
 #include <time.h>
 #include <stdint.h>
@@ -91,8 +92,8 @@
         uint32_t deaths;
         uint32_t coins_carried;
         uint32_t coins_brought;
-        sem_t semaphore; // why here?
-        struct api_inner_t client_data[10];
+        //sem_t semaphore; // why here?
+        struct api_inner_t client_data[BEASTS_MAX_NUM];
         uint8_t type[6];
         uint8_t player_number; // set to 0 each time on a client side so to know
                                // that client process is still running?
@@ -115,8 +116,8 @@
     struct api_shd_conn {
 
         pid_t client_pid;
-        sem_t * sem_server;
-        sem_t * sem_client;
+        // sem_t * sem_server;
+        // sem_t * sem_client;
         uint8_t client_type[6];
         uint8_t player_number;
         uint8_t beasts_in_game;
@@ -142,16 +143,41 @@
         uint8_t player_number;
     };
 
+    struct beast_info {     // beast dies after x rounds
+
+        struct pos_t position;
+        uint64_t init_round_number;
+        uint8_t in_game;    // if currently running
+    };
+
+    struct beasts_t {
+
+        pid_t beasts_pid;
+        struct beast_info beasts[BEASTS_MAX_NUM];
+        uint8_t client_number;
+    };
+
     struct server_info {
 
-        uint64_t round_number; //when and how to finish a game? Another client info type
+        uint64_t round_number;
         struct trea_node * trea_list_head;
         pid_t server_pid;
         struct pos_t camp_position;
         struct api_wrap_conn api_conn;
-        struct api_wrap_t api_client[5];
+        struct api_wrap_t api_client[PLAYERS_NUM + 1];
         uint8_t ** game_grid;
         struct client_info players[PLAYERS_NUM];
+        struct beasts_t beasts;
+        int32_t key_pressed;
+        sem_t sem_keybinding;
+        sem_t * sem_server;
+        sem_t * sem_client;
+        sem_t * sem_client_1;
+        sem_t * sem_client_2;
+        sem_t * sem_client_3;
+        sem_t * sem_client_4;
+        sem_t * sem_client_5;
+
     };
 
     uint32_t add_trea(struct trea_node ** head, uint8_t x, uint8_t y , uint32_t value);
@@ -161,16 +187,33 @@
     void display_client(struct api_t * client);
     void display_server(struct server_info* server);
     
-    uint32_t init_shd_memories(struct api_wrap_t * api_client, struct api_wrap_conn * api_conn);
-    void destroy_shd_memories(struct api_wrap_t * api_client, struct api_wrap_conn * api_conn);
-    struct server_info * init_server_info(uint8_t ** gm_board);
+    uint32_t init_shd_memories(struct api_wrap_t * api_client, struct api_wrap_conn * api_conn); // server could be as a parameter
+    void destroy_shd_memories(struct api_wrap_t * api_client, struct api_wrap_conn * api_conn); // -||-
+    
+    uint32_t init_semaphores(struct server_info * server);
+    void destroy_semaphores(struct server_info * server); 
+    
+    struct server_info * init_server(uint8_t ** gm_board);
+    void destroy_server(struct server_info * server);
+
+    void * server_keybinding(void * svr);
+    uint32_t add_new_beast(struct server_info * server);
+    uint32_t add_new_coin(struct server_info * server);
+    uint32_t add_new_small_treasure(struct server_info * server);
+    uint32_t add_new_big_treasure(struct server_info * server);
+
+    uint32_t move_beast(struct server_info * server, uint8_t beast_num);
+    uint32_t move_player(struct server_info * server, uint8_t player_num);
     
     uint32_t select_random_position(uint8_t **gm_board, struct pos_t * position);
-    uint32_t reset_player_info(struct client_info * player);
-    uint32_t prepare_new_player(struct server_info * server);
-    uint32_t set_api_client(struct server_info * server);
     uint32_t set_new_character_game_board(struct server_info * server, const struct pos_t * position, uint8_t figure);
+    uint32_t reset_player_info(struct client_info * player);
+    uint32_t reset_beasts_info(struct beasts_t * beasts);
+    uint32_t reset_api_client(struct api_t * api_client);
+    uint32_t prepare_new_player(struct server_info * server);
+    uint32_t prepare_beast(struct server_info * server);
     uint32_t update_api_client(struct server_info * server, uint8_t client_num);
+    uint32_t update_all_api_client(struct server_info * server);
     uint32_t set_client_game_board(uint8_t ** gm_board, uint8_t ** gm_board_cl, const struct pos_t * position);
 
 

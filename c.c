@@ -39,11 +39,13 @@ uint8_t game_grid[25][52] ={"###################################################
 
     int c = 10;
     while(1){
-        //sleep(1);
+
         sleep(1);
         system("clear");
         //printf("YEAH\n");
         c = getch();
+
+        printf("%c\n", c);
 
         if (c == KEY_DOWN){
 
@@ -52,11 +54,11 @@ uint8_t game_grid[25][52] ={"###################################################
                 printf("%s\n", game_grid + x);
             }
         }
+    
+        if (c == KEY_DOWN){
 
-        // if (c == KEY_DOWN){
-
-        //     printf("TURURUR\n");
-        // }
+            printf("TURURUR\n");
+        }
 
         //printf("%d\n", c);
         if ( c == '\033') { // if the first value is esc

@@ -215,7 +215,7 @@ void destroy_mv_handle(struct client_mv_handle * mv_handle){
             close(mv_handle->api_id);
         }
 
-        sem_close(&mv_handle->intern_sem);
+        sem_destroy(&mv_handle->intern_sem);
         // exiting a thread is not required
 
         free(mv_handle);
