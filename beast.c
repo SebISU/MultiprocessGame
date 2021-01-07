@@ -53,7 +53,8 @@ int main(void){
         
         sem_wait(mv_handle->sem_move);
 
-        display_client(mv_handle->api);  // displaying after if? better or not?
+        //display_client(mv_handle->api);  // displaying after if? better or not?
+                                            // do not have to display a beast
 
         if (mv_handle->api->player_number == 0){
 
@@ -61,16 +62,19 @@ int main(void){
             break;
         }
 
-        if (mv_handle->key_pressed != 0){
+        if (mv_handle->key_pressed == 'q' || mv_handle->key_pressed == 'Q'){
 
             printf("\n\nTHANKS FOR THE GAME\n\n");
             break;
         }
 
+        if (mv_handle->key_pressed != 0){
+
+            mv_handle->key_pressed = 0;
+            sem_post(&mv_handle->intern_sem);
+        }
+
         mv_handle->api->player_number = 0;
-
-
-        sem_post(&mv_handle->intern_sem);
 
         for (int32_t i = 0; i < BEASTS_MAX_NUM; ++i){
 

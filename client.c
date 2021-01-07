@@ -18,7 +18,7 @@ int main(void){
 
         sem_post(handle->sem_client);
         destroy_handle(handle);
-        printf("SERVER IS FULL\n");
+        printf("SERVER IS FULL OR DEAD\n");
         return 2;
     }
 
@@ -38,6 +38,9 @@ int main(void){
     sem_post(handle->sem_client);
     destroy_handle(handle);
 
+
+    // here problem when connection accepted but server wanted to stop and set pl_num to 0
+    // kill the process after determined period (3s?)
     while(mv_handle->api->player_number != mv_handle->player_number){
 
     };

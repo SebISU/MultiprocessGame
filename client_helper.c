@@ -231,7 +231,7 @@ void * client_keybinding(void * handle){
         //improve this, now it does not work
         mv_handle->key_pressed = getch();
 
-        // without this should work too
+        // without this should work too     ??
         if (mv_handle->key_pressed == 'q' || mv_handle->key_pressed == 'Q'){
 
             return NULL;

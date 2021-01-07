@@ -3,7 +3,7 @@
 
 uint32_t add_trea(struct trea_node ** head, uint8_t x, uint8_t y , uint32_t value){
     
-    if (head == NULL || value == 0){    // just for > 0 values
+    if (head == NULL || value == 0){    // just for values > 0
 
         return 0;
     }
@@ -138,7 +138,7 @@ void display_server(struct server_info* server){
         printf("%-55sT    - large treasure (50 coins)\n", server->game_grid + 23);
         printf("%-55sA    - campsite\n", server->game_grid + 24);
     }
-};
+}
 
 uint32_t init_shd_memories(struct api_wrap_t * api_client, struct api_wrap_conn * api_conn){
 
@@ -258,33 +258,13 @@ void destroy_shd_memories(struct api_wrap_t * api_client, struct api_wrap_conn *
                 close((api_client + i)->api_id);
             }
 
-            if (i == 0){
-
-                shm_unlink(SHD_MEM_1);
-            }
-            else if(i == 1){
-
-                shm_unlink(SHD_MEM_2);
-            }
-            else if (i == 2){
-
-                shm_unlink(SHD_MEM_3);
-            }
-            else if (i == 3){
-
-                shm_unlink(SHD_MEM_4);
-            }
-            else if (i == 4){
-
-                shm_unlink(SHD_MEM_5);
-            }
         }
-        // try instead of if statements
-        // shm_unlink(SHD_MEM_1);
-        // shm_unlink(SHD_MEM_2);
-        // shm_unlink(SHD_MEM_3);
-        // shm_unlink(SHD_MEM_4);
-        // shm_unlink(SHD_MEM_5);
+
+        shm_unlink(SHD_MEM_1);
+        shm_unlink(SHD_MEM_2);
+        shm_unlink(SHD_MEM_3);
+        shm_unlink(SHD_MEM_4);
+        shm_unlink(SHD_MEM_5);
     }
 }
 
@@ -463,7 +443,7 @@ struct server_info * init_server(uint8_t ** gm_board){
         return NULL;
     }
 
-    if ( 0 < select_random_position(gm_board, &server->camp_position)){
+    if (0 < select_random_position(gm_board, &server->camp_position)){
 
         free(server);
         return NULL;
@@ -519,6 +499,21 @@ struct server_info * init_server(uint8_t ** gm_board){
         }
     }
 
+    if (init_semaphores(server)){
+
+        destroy_shd_memories(server->api_client, &server->api_conn);
+        free(server);
+        return NULL;
+    }
+
+    if (pthread_mutex_init(&server->mutex, NULL)){
+
+        destroy_shd_memories(server->api_client, &server->api_conn);
+        destroy_semaphores(server);
+        free(server);
+        return NULL;
+    }
+
     return server;
 }
 
@@ -528,6 +523,8 @@ void destroy_server(struct server_info * server){
 
         destroy_semaphores(server);
         destroy_shd_memories(server->api_client, &server->api_conn);
+        pthread_mutex_destroy(&server->mutex);
+        destroy_trea(server->trea_list_head);
         free(server);
     }
 }
@@ -539,7 +536,7 @@ uint32_t reset_player_info(struct client_info * player){
         return 1;
     }
 
-    player->client_pid = 0;
+    player->client_pid = -1;
     strcpy(player->client_type, "---");
     player->coins_carried = 0;
     player->coins_brought = 0;
@@ -554,7 +551,7 @@ uint32_t reset_player_info(struct client_info * player){
     player->spawn_position.y = 0;
 
     return 0;
-};
+}
 
 uint32_t reset_beasts_info(struct beasts_t * beasts){
 
@@ -563,12 +560,12 @@ uint32_t reset_beasts_info(struct beasts_t * beasts){
         return 1;
     }
 
-    beasts->beasts_pid = 0;
+    beasts->beasts_pid = -1;
     beasts->client_number = 0;
 
     for (int32_t i = 0; i < BEASTS_MAX_NUM; ++i){
 
-        (beasts->beasts + i)->in_game = 0; // 0  means not in game
+        (beasts->beasts + i)->in_game = 0; // 0 means not in game
     }
 
     return 0;
@@ -582,7 +579,7 @@ uint32_t reset_api_client(struct api_t * api_client){
     }
 
     api_client->round_number = 0;
-    api_client->server_pid = 0;
+    api_client->server_pid = -1;
     api_client->deaths = 0;
     api_client->coins_carried = 0;
     api_client->coins_brought = 0;
@@ -608,9 +605,6 @@ void * handle_connections(void * svr){
         return NULL;
     }
 
-    // think how to stop this thread properly. I don't have to stop this process.
-    // It will be killed when I stop the main thread.
-
     struct server_info * server = (struct server_info *)svr;
 
     while(1){
@@ -624,7 +618,9 @@ void * handle_connections(void * svr){
 
         sem_wait(server->sem_client);
 
-        accept_new_connection(server);  // what will happen if connecting fail
+        pthread_mutex_lock(&server->mutex);
+        accept_new_connection(server);  // what happen if connecting will fail
+        pthread_mutex_unlock(&server->mutex);
     }
 
     return NULL;
@@ -638,7 +634,7 @@ uint32_t reset_api_conn(struct server_info * server){
     }
 
     server->api_conn.api->player_number = 0;
-    server->api_conn.api->client_pid = 0;
+    server->api_conn.api->client_pid = -1;
     server->api_conn.api->beasts_in_game = 0;
 
     return 0;
@@ -662,7 +658,7 @@ uint32_t update_api_conn(struct server_info * server){
 
     if (server->api_conn.api->player_number != 0){ // accepted connection sets player_num to 0
 
-        server->api_conn.api->client_pid = 0;
+        server->api_conn.api->client_pid = -1;
         return 0;
     }
 
@@ -679,10 +675,12 @@ uint32_t update_api_conn(struct server_info * server){
     if (i < PLAYERS_NUM){
 
         server->api_conn.api->player_number = i + 1;
+        pthread_mutex_lock(&server->mutex);
         server->players[i].player_number = i + 1; // mutex probably does not required
-    }
+        pthread_mutex_unlock(&server->mutex);     // only one place, where value can be changed
+    }                                             // to > 0
 
-    server->api_conn.api->client_pid = 0;
+    server->api_conn.api->client_pid = -1;
 
     return 0;
 }
@@ -696,7 +694,7 @@ uint32_t accept_new_connection(struct server_info * server){
         return 1;
     }
 
-    if (server->api_conn.api->client_pid == 0){
+    if (server->api_conn.api->client_pid < 0){
 
         return 3;
     }
@@ -710,9 +708,9 @@ uint32_t accept_new_connection(struct server_info * server){
 
             if (server->players[i].player_number == server->api_conn.api->player_number){
 
-                reset_player_info(server->players + i);
+                reset_player_info(server->players + i); // redundant, done in main thread and init_server()
                 prepare_new_player(server);
-                update_api_client(server, i + 1);
+                update_api_client(server, i + 1u);
                 server->api_conn.api->player_number = 0;
 
                 break;
@@ -733,7 +731,7 @@ uint32_t accept_new_connection(struct server_info * server){
         }
         else{
 
-            reset_beasts_info(&server->beasts);
+            reset_beasts_info(&server->beasts); // redundant, done in main thread and init_server()
             prepare_beast(server);
             update_api_client(server, PLAYERS_NUM + 1u);
         }
@@ -790,7 +788,6 @@ uint32_t prepare_beast(struct server_info * server){
     return 0;
 }
 
-// killing the beast has to be managed on the server side
 uint32_t update_api_client(struct server_info * server, uint8_t client_num){
 
     if (server == NULL){
@@ -800,7 +797,8 @@ uint32_t update_api_client(struct server_info * server, uint8_t client_num){
 
     if (client_num > 0 && client_num <= PLAYERS_NUM){
 
-        if (server->players[client_num - 1].player_number > 0){ // shouldn't cause a problem
+        if (server->players[client_num - 1].player_number > 0
+        && server->players[client_num - 1].client_pid >= 0){ // shouldn't cause a problem
 
             server->api_client[client_num - 1].api->round_number = server->round_number;
             server->api_client[client_num - 1].api->server_pid = server->server_pid;
@@ -826,7 +824,7 @@ uint32_t update_api_client(struct server_info * server, uint8_t client_num){
     }
     else if (client_num == PLAYERS_NUM + 1){
 
-        if (server->beasts.client_number > 0){
+        if (server->beasts.client_number > 0 && server->beasts.beasts_pid >= 0){
 
             server->api_client[client_num - 1].api->round_number = server->round_number;
             server->api_client[client_num - 1].api->server_pid = server->server_pid;
@@ -860,11 +858,6 @@ uint32_t update_api_client(struct server_info * server, uint8_t client_num){
         return 2;
     }
 
-// what if set_client will go wrong? Here mutex can/should be used to be sure that
-// the same value is set to api and passed as a func parameter
-// clash with game cycle thread
-// except you set a proper condition in that thread
-
     return 0;
 }
 
@@ -875,17 +868,12 @@ uint32_t update_all_api_client(struct server_info * server){
         return 1;
     }
 
-    for (uint8_t i = 1; i <= PLAYERS_NUM; ++i){
+    for (uint8_t i = 1; i <= PLAYERS_NUM + 1; ++i){
 
         if (update_api_client(server, i)){
 
             return 2;
         }
-    }
-
-    if (update_api_client(server, PLAYERS_NUM + 1)){
-
-        return 2;
     }
 
     return 0;
@@ -954,17 +942,11 @@ const struct pos_t * position){
     return 0;
 }
 
-// server_keybinding manages keybindings completely. Works on server struct.
 // Uses mutexes when sth new is added to the game. When q/Q pressed thread terminates
 // with keypressed = q set in server struct. Main thread checks if q is set. If so
 // terminates the game.
-// Maybe kill the game in this thread?
-// Does not required, but intern semaphore should be posted() in main thread just after
-// checking the condition so to thread has ASAP time to catch the key and perform operations
 
 void * server_keybinding(void * svr){
-
-/* can print info in console when sth went wrong with setting new figures */
 
     struct server_info * server = (struct server_info *)svr;
 
@@ -978,20 +960,36 @@ void * server_keybinding(void * svr){
             return NULL;
         }
         else if (server->key_pressed == 'b' || server->key_pressed == 'B'){
-//mutex in each elif
+
+            pthread_mutex_lock(&server->mutex);
+
             add_new_beast(server);
+        
+            pthread_mutex_unlock(&server->mutex);
         }
         else if (server->key_pressed == 'c'){
 
+            pthread_mutex_lock(&server->mutex);
+
             add_new_coin(server);
+
+            pthread_mutex_unlock(&server->mutex);
         }
         else if (server->key_pressed == 't'){
 
+            pthread_mutex_lock(&server->mutex);
+
             add_new_small_treasure(server);
+
+            pthread_mutex_unlock(&server->mutex);
         }
         else if (server->key_pressed == 'T'){
 
+            pthread_mutex_lock(&server->mutex);
+
             add_new_big_treasure(server);
+
+            pthread_mutex_unlock(&server->mutex);
         }
 
         sem_wait(&server->sem_keybinding);
@@ -1300,7 +1298,7 @@ uint32_t move_player(struct server_info * server, uint8_t player_num){
         server->players[player_num - 1].curr_position.x;
         server->players[player_num - 1].prev_position.y =
         server->players[player_num - 1].curr_position.y;
-        server->players[player_num - 1].into_bushes = 0; // consider this, works both ways
+        server->players[player_num - 1].into_bushes = 0;
 
         return 0;
     }
@@ -1467,7 +1465,7 @@ uint32_t move_player(struct server_info * server, uint8_t player_num){
         player_num + '0');
         set_new_character_game_board(server, &temp_pos, 'D');
     }
-    else if (server->game_grid[temp_pos.y][temp_pos.x] == '#'){ // else could be enough
+    else if (server->game_grid[temp_pos.y][temp_pos.x] == '#'){ //could else be enough?
 
         server->players[player_num - 1].prev_position.x =
         server->players[player_num - 1].curr_position.x;

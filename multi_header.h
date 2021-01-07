@@ -30,7 +30,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 //#include <sys/ipc.h> tutorial yt older sysV API
-//#include <sys/shm.h>
+#include <sys/shm.h>
 #include <sys/mman.h>
 //#include <sys/stat.h> // not sure if it is needed
 #include <semaphore.h>
@@ -116,8 +116,6 @@
     struct api_shd_conn {
 
         pid_t client_pid;
-        // sem_t * sem_server;
-        // sem_t * sem_client;
         uint8_t client_type[6];
         uint8_t player_number;
         uint8_t beasts_in_game;
@@ -159,6 +157,7 @@
 
     struct server_info {
 
+        pthread_mutex_t mutex;
         uint64_t round_number;
         struct trea_node * trea_list_head;
         pid_t server_pid;

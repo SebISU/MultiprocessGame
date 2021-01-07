@@ -18,7 +18,7 @@ int main(void){
 
         sem_post(handle->sem_client);
         destroy_handle(handle);
-        printf("SERVER IS FULL\n");
+        printf("SERVER IS FULL OR DEAD\n");
         return 2;
     }
 
@@ -62,16 +62,19 @@ int main(void){
             break;
         }
 
-        if (mv_handle->key_pressed != 0){
+        if (mv_handle->key_pressed == 'q' || mv_handle->key_pressed == 'Q'){
 
-            mv_handle->api->client_data->current_move = QUIT; // does not required
             printf("\n\nTHANKS FOR THE GAME\n\n");
             break;
         }
 
-        mv_handle->api->player_number = 0; // not zero means that process is dead
+        if (mv_handle->key_pressed != 0){
 
-        sem_post(&mv_handle->intern_sem);
+            mv_handle->key_pressed = 0;
+            sem_post(&mv_handle->intern_sem);
+        }
+
+        mv_handle->api->player_number = 0; // not zero means that process is dead
 
         // these two fuctions take much time 
         get_closest_beast(mv_handle->api->client_data, &beast);
