@@ -4,11 +4,11 @@ void display_client(struct api_t * client){
 
     if (client != NULL){
 
-        printf("%-54sServer`s PID: %u\n", client->client_data->game_grid, client->server_pid);
-        printf("%-55sCampsite X/Y: unknown\n", client->client_data->game_grid + 1);
-        printf("%-55sRound number: %u\n", client->client_data->game_grid + 2, client->round_number);
-        printf("%s\n", client->client_data->game_grid + 3);
-        printf("%-54sPlayer:\n", client->client_data->game_grid + 4);
+        printf("%.*s%49sServer`s PID: %u\n", 5, *(client->client_data->game_grid), "", client->server_pid);
+        printf("%.*s%50sCampsite X/Y: unknown\n", 5, *(client->client_data->game_grid + 1), "");
+        printf("%.*s%50sRound number: %lu\n", 5, *(client->client_data->game_grid + 2), "", client->round_number);
+        printf("%.*s\n", 5, *(client->client_data->game_grid + 3));
+        printf("%.*s%49sPlayer:\n", 5, *(client->client_data->game_grid + 4), "");
         printf("%-55sNumber:     %u\n", "", client->player_number);
         printf("%-55sType:       %5s\n", "", client->type);
         printf("%-55sCurr X/Y:   %02u/%02u\n", "", client->client_data->position.x,
@@ -40,7 +40,7 @@ struct client_handle * init_handle(){
 
     handle->sem_client = sem_open(SEM_CONN_CLIENT, 0);
 
-    if (handle->api_conn == SEM_FAILED){
+    if ((void*)handle->sem_client == SEM_FAILED){
 
         free(handle);
         return NULL;
@@ -48,7 +48,7 @@ struct client_handle * init_handle(){
 
     handle->sem_server = sem_open(SEM_CONN_SERVER, 0);
 
-    if (handle->sem_server == SEM_FAILED){
+    if ((void*)handle->sem_server == SEM_FAILED){
 
         sem_close(handle->sem_client);
         free(handle);
@@ -108,7 +108,7 @@ void destroy_handle(struct client_handle * handle){
     }
 }
 
-struct client_mv_handle * init_mv_handle(const uint8_t player_number){
+struct client_mv_handle * init_mv_handle(const int8_t player_number){
 
     if (player_number == 0 || player_number > PLAYERS_NUM){
 
@@ -159,13 +159,6 @@ struct client_mv_handle * init_mv_handle(const uint8_t player_number){
     else if (mv_handle->sem_move != SEM_FAILED && mv_handle->api_id == -1){
 
 
-        free(mv_handle);
-        return NULL;
-    }
-    else{
-
-        sem_close(mv_handle->sem_move);
-        close(mv_handle->api_id);
         free(mv_handle);
         return NULL;
     }

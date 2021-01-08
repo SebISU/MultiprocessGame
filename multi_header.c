@@ -1,7 +1,7 @@
 #include "multi_header.h"
 
 
-uint32_t add_trea(struct trea_node ** head, uint8_t x, uint8_t y , uint32_t value){
+uint32_t add_trea(struct trea_node ** head, int8_t x, int8_t y , uint32_t value){
     
     if (head == NULL || value == 0){    // just for values > 0
 
@@ -39,7 +39,7 @@ uint32_t add_trea(struct trea_node ** head, uint8_t x, uint8_t y , uint32_t valu
     return (*head)->treasure_info.value;
 }
 
-uint32_t fetch_trea(struct trea_node ** head, uint8_t x, uint8_t y){
+uint32_t fetch_trea(struct trea_node ** head, int8_t x, int8_t y){
 
     if (head == NULL){
 
@@ -96,47 +96,47 @@ void display_server(struct server_info* server){
 
     if (server != NULL){
 
-        printf("%-54sServer`s PID: %u\n", server->game_grid, server->server_pid);
-        printf("%-55sCampsite X/Y: %u/%u\n", server->game_grid + 1, server->camp_position.x,
+        printf("%-54sServer`s PID: %u\n", *server->game_grid, server->server_pid);
+        printf("%-55sCampsite X/Y: %u/%u\n", *(server->game_grid + 1), server->camp_position.x,
         server->camp_position.y);
-        printf("%-55sRound number: %u\n", server->game_grid + 2, server->round_number);
-        printf("%s\n", server->game_grid + 3);
-        printf("%-54sParameter:   Player1  Player2  Player3  Player4\n", server->game_grid + 4);
-        printf("%-55sPID:         %-9u%-9u%-9u%-9u\n", server->game_grid + 5,
+        printf("%-55sRound number: %lu\n", *(server->game_grid + 2), server->round_number);
+        printf("%s\n", *(server->game_grid + 3));
+        printf("%-54sParameter:   Player1  Player2  Player3  Player4\n", *(server->game_grid + 4));
+        printf("%-55sPID:         %-9d%-9d%-9d%-9d\n", *(server->game_grid + 5),
         (server->players)->client_pid, (server->players + 1)->client_pid,
         (server->players + 2)->client_pid, (server->players + 3)->client_pid);
-        printf("%-55sType:        %-9s%-9s%-9s%-9s\n", server->game_grid + 6,
+        printf("%-55sType:        %-9s%-9s%-9s%-9s\n", *(server->game_grid + 6),
         (server->players)->client_type, (server->players + 1)->client_type,
         (server->players + 2)->client_type, (server->players + 3)->client_type);
         printf("%-55sCurr X/Y:    %02u/%02u    %02u/%02u    %02u/%02u    %02u/%02u\n",
-        server->game_grid + 7, (server->players)->curr_position.x,
+        *(server->game_grid + 7), (server->players)->curr_position.x,
         (server->players)->curr_position.y, (server->players + 1)->curr_position.x,
         (server->players + 1)->curr_position.y, (server->players + 2)->curr_position.x,
         (server->players + 2)->curr_position.y, (server->players + 3)->curr_position.x,
         (server->players + 3)->curr_position.y);
-        printf("%-55sDeaths:      %-9u%-9u%-9u%-9u\n\n", server->game_grid + 8,
+        printf("%-55sDeaths:      %-9u%-9u%-9u%-9u\n", *(server->game_grid + 8),
         (server->players)->deaths, (server->players + 1)->deaths, (server->players + 2)->deaths,
         (server->players + 3)->deaths);
-        printf("%s\n", server->game_grid + 9);
-        printf("%-54sCoins:\n", server->game_grid + 10);
-        printf("%-55scarried      %-9u%-9u%-9u%-9u\n", server->game_grid + 11,
+        printf("%s\n", *(server->game_grid + 9));
+        printf("%-54sCoins:\n", *(server->game_grid + 10));
+        printf("%-55scarried      %-9u%-9u%-9u%-9u\n", *(server->game_grid + 11),
         (server->players)->coins_carried, (server->players + 1)->coins_carried,
         (server->players + 2)->coins_carried, (server->players + 3)->coins_carried);
-        printf("%-55sbrought      %-9u%-9u%-9u%-9u\n", server->game_grid + 12,
+        printf("%-55sbrought      %-9u%-9u%-9u%-9u\n", *(server->game_grid + 12),
         (server->players)->coins_brought, (server->players + 1)->coins_brought,
         (server->players + 2)->coins_brought, (server->players + 3)->coins_brought);
-        printf("%s\n", server->game_grid + 13);
-        printf("%s\n", server->game_grid + 14);
-        printf("%-54sLegend:\n", server->game_grid + 15);
-        printf("%-55s1234 - players\n", server->game_grid + 16);
-        printf("%-55s#    - wall\n", server->game_grid + 17);
-        printf("%-55s~    - bushes (slow down)\n", server->game_grid + 18);
-        printf("%-55s*    - enemy\n", server->game_grid + 19);
-        printf("%-55sD    - dropped treasure\n", server->game_grid + 20);
-        printf("%-55sc    - one coin\n", server->game_grid + 21);
-        printf("%-55sC    - treasure (10 coins)\n", server->game_grid + 22);
-        printf("%-55sT    - large treasure (50 coins)\n", server->game_grid + 23);
-        printf("%-55sA    - campsite\n", server->game_grid + 24);
+        printf("%s\n", *(server->game_grid + 13));
+        printf("%s\n", *(server->game_grid + 14));
+        printf("%-54sLegend:\n", *(server->game_grid + 15));
+        printf("%-55s1234 - players\n", *(server->game_grid + 16));
+        printf("%-55s#    - wall\n", *(server->game_grid + 17));
+        printf("%-55s~    - bushes (slow down)\n", *(server->game_grid + 18));
+        printf("%-55s*    - enemy\n", *(server->game_grid + 19));
+        printf("%-55sD    - dropped treasure\n", *(server->game_grid + 20));
+        printf("%-55sc    - one coin\n", *(server->game_grid + 21));
+        printf("%-55sC    - treasure (10 coins)\n", *(server->game_grid + 22));
+        printf("%-55sT    - large treasure (50 coins)\n", *(server->game_grid + 23));
+        printf("%-55sA    - campsite\n", *(server->game_grid + 24));
     }
 }
 
@@ -403,7 +403,7 @@ void destroy_semaphores(struct server_info * server){
     }
 }
 
-uint32_t select_random_position(uint8_t **gm_board, struct pos_t * position){
+uint32_t select_random_position(int8_t **gm_board, struct pos_t * position){
 
     if (gm_board == NULL || position == NULL){
 
@@ -412,7 +412,7 @@ uint32_t select_random_position(uint8_t **gm_board, struct pos_t * position){
 
     srand(time(NULL));
 
-    uint8_t x, y;
+    int8_t x, y;
 
     // should add a condition in case of no free positions available
     // 1300 fields in the board. 10000 loops as a limit?
@@ -429,7 +429,7 @@ uint32_t select_random_position(uint8_t **gm_board, struct pos_t * position){
     return 0;
 }
 
-struct server_info * init_server(uint8_t ** gm_board){
+struct server_info * init_server(int8_t ** gm_board){
 
     if (gm_board == NULL){
 
@@ -524,7 +524,7 @@ void destroy_server(struct server_info * server){
         destroy_semaphores(server);
         destroy_shd_memories(server->api_client, &server->api_conn);
         pthread_mutex_destroy(&server->mutex);
-        destroy_trea(server->trea_list_head);
+        destroy_trea(&server->trea_list_head);
         free(server);
     }
 }
@@ -537,7 +537,7 @@ uint32_t reset_player_info(struct client_info * player){
     }
 
     player->client_pid = -1;
-    strcpy(player->client_type, "---");
+    strcpy((char*)player->client_type, "---");
     player->coins_carried = 0;
     player->coins_brought = 0;
     player->deaths = 0;
@@ -591,7 +591,7 @@ uint32_t reset_api_client(struct api_t * api_client){
         (api_client->client_data + i)->current_move = NO_MOVE;
     }
 
-    strcpy(api_client->type, "---");
+    strcpy((char*)api_client->type, "---");
     api_client->player_number = 0;
 
 
@@ -621,6 +621,7 @@ void * handle_connections(void * svr){
         pthread_mutex_lock(&server->mutex);
         accept_new_connection(server);  // what happen if connecting will fail
         pthread_mutex_unlock(&server->mutex);
+
     }
 
     return NULL;
@@ -657,7 +658,7 @@ uint32_t update_api_conn(struct server_info * server){
     }
 
     if (server->api_conn.api->player_number != 0){ // accepted connection sets player_num to 0
-
+                                                    // think if needed
         server->api_conn.api->client_pid = -1;
         return 0;
     }
@@ -687,8 +688,6 @@ uint32_t update_api_conn(struct server_info * server){
 
 uint32_t accept_new_connection(struct server_info * server){
 
-    // can add a possibility for many attempts like in the web requests
-
     if (server == NULL){
 
         return 1;
@@ -699,8 +698,8 @@ uint32_t accept_new_connection(struct server_info * server){
         return 3;
     }
 
-    if (strcmp(server->api_conn.api->client_type, "HUMAN") == 0 ||
-    strcmp(server->api_conn.api->client_type, "CPU") == 0){
+    if (strcmp((char*)server->api_conn.api->client_type, "HUMAN") == 0 ||
+    strcmp((char*)server->api_conn.api->client_type, "CPU") == 0){
 
         uint32_t i;
 
@@ -710,7 +709,7 @@ uint32_t accept_new_connection(struct server_info * server){
 
                 reset_player_info(server->players + i); // redundant, done in main thread and init_server()
                 prepare_new_player(server);
-                update_api_client(server, i + 1u);
+                //update_api_client(server, i + 1);
                 server->api_conn.api->player_number = 0;
 
                 break;
@@ -723,7 +722,7 @@ uint32_t accept_new_connection(struct server_info * server){
         }
 
     }
-    else if (strcmp(server->api_conn.api->client_type, "BEAST") == 0){
+    else if (strcmp((char*)server->api_conn.api->client_type, "BEAST") == 0){
 
         if (server->beasts.client_number > 0){
 
@@ -733,7 +732,7 @@ uint32_t accept_new_connection(struct server_info * server){
 
             reset_beasts_info(&server->beasts); // redundant, done in main thread and init_server()
             prepare_beast(server);
-            update_api_client(server, PLAYERS_NUM + 1u);
+            //update_api_client(server, PLAYERS_NUM + 1);
         }
     }
     else {
@@ -755,8 +754,8 @@ uint32_t prepare_new_player(struct server_info * server){
     = server->api_conn.api->player_number;
     server->players[server->api_conn.api->player_number - 1].client_pid
     = server->api_conn.api->client_pid;
-    strcpy(server->players[server->api_conn.api->player_number - 1].client_type,
-    server->api_conn.api->client_type);
+    strcpy((char*)server->players[server->api_conn.api->player_number - 1].client_type,
+    (char*)server->api_conn.api->client_type);
 
     select_random_position(server->game_grid,
     &server->players[server->api_conn.api->player_number - 1].spawn_position);
@@ -788,15 +787,15 @@ uint32_t prepare_beast(struct server_info * server){
     return 0;
 }
 
-uint32_t update_api_client(struct server_info * server, uint8_t client_num){
+uint32_t update_api_client(struct server_info * server, int8_t client_num){
 
     if (server == NULL){
 
         return 1;
     }
-
+    //printf("HERO 1 %d\n", client_num);
     if (client_num > 0 && client_num <= PLAYERS_NUM){
-
+    //printf("HERO 2 %d\n", client_num);
         if (server->players[client_num - 1].player_number > 0
         && server->players[client_num - 1].client_pid >= 0){ // shouldn't cause a problem
 
@@ -813,22 +812,24 @@ uint32_t update_api_client(struct server_info * server, uint8_t client_num){
             server->api_client[client_num - 1].api->client_data->position.y =
             server->players[client_num - 1].curr_position.y;
             server->api_client[client_num - 1].api->client_data->current_move = NO_MOVE;
-            set_client_game_board(server->game_grid,
-            server->api_client[client_num - 1].api->client_data->game_grid,
+                //printf("HERO 22 %d\n", client_num);
+            set_client_game_board(server,
+            server->api_client[client_num - 1].api->client_data,
             &server->api_client[client_num - 1].api->client_data->position);
-            strcpy(server->api_client[client_num - 1].api->type,
-            server->players[client_num - 1].client_type);
+                //printf("HERO 23 %d\n", client_num);
+            strcpy((char*)server->api_client[client_num - 1].api->type,
+            (char*)server->players[client_num - 1].client_type);
             server->api_client[client_num - 1].api->player_number =
             server->players[client_num - 1].player_number;
         }
     }
     else if (client_num == PLAYERS_NUM + 1){
-
+    //printf("HERO 3%d\n", client_num);
         if (server->beasts.client_number > 0 && server->beasts.beasts_pid >= 0){
 
             server->api_client[client_num - 1].api->round_number = server->round_number;
             server->api_client[client_num - 1].api->server_pid = server->server_pid;
-            strcpy(server->api_client[client_num - 1].api->type, "BEAST");
+            strcpy((char*)server->api_client[client_num - 1].api->type, "BEAST");
             server->api_client[client_num - 1].api->player_number =
             server->beasts.client_number;
 
@@ -838,11 +839,11 @@ uint32_t update_api_client(struct server_info * server, uint8_t client_num){
 
                     server->api_client[client_num - 1].api->client_data[i].position.x =
                     server->beasts.beasts[i].position.x;
-                    server->api_client[client_num - 1].api->client_data->position.y =
+                    server->api_client[client_num - 1].api->client_data[i].position.y =
                     server->beasts.beasts[i].position.y;
                     server->api_client[client_num - 1].api->client_data[i].current_move = NO_MOVE;
-                    set_client_game_board(server->game_grid,
-                    server->api_client[client_num - 1].api->client_data[i].game_grid,
+                    set_client_game_board(server,
+                    server->api_client[client_num - 1].api->client_data + i,
                     &server->beasts.beasts[i].position);
                 }
                 else{
@@ -854,7 +855,7 @@ uint32_t update_api_client(struct server_info * server, uint8_t client_num){
         }
     }
     else{
-
+    //printf("HERO 4%d\n", client_num);
         return 2;
     }
 
@@ -868,7 +869,7 @@ uint32_t update_all_api_client(struct server_info * server){
         return 1;
     }
 
-    for (uint8_t i = 1; i <= PLAYERS_NUM + 1; ++i){
+    for (int8_t i = 1; i <= PLAYERS_NUM + 1; ++i){
 
         if (update_api_client(server, i)){
 
@@ -880,7 +881,7 @@ uint32_t update_all_api_client(struct server_info * server){
 }
 
 uint32_t set_new_character_game_board(struct server_info * server,
-const struct pos_t * position, uint8_t figure){
+const struct pos_t * position, int8_t figure){
 
     if (server == NULL || position == NULL){
 
@@ -903,10 +904,10 @@ const struct pos_t * position, uint8_t figure){
     return 0;
 }
 
-uint32_t set_client_game_board(uint8_t ** gm_board, uint8_t ** gm_board_cl,
+uint32_t set_client_game_board(struct server_info * server, struct api_inner_t * api_client,
 const struct pos_t * position){
 
-    if (gm_board == NULL || gm_board_cl == NULL){
+    if (server == NULL || api_client == NULL){
 
         return 1;
     }
@@ -917,26 +918,26 @@ const struct pos_t * position){
         return 2;
     }
 
-    uint8_t x = 0;
-    uint8_t y = 0;
+    int8_t x = 0;
+    int8_t y = 0;
 
     for (int32_t i = position->y - 2; i <= position->y + 2; ++i){
         for (int32_t j = position->x - 2; j <= position->x + 2; ++j){
 
             if (i < 0 || i >= GAME_HEIGHT || j < 0 || j >= GAME_WIDTH){
 
-                gm_board_cl[x][y] = '#';
+                api_client->game_grid[y][x] = '#';
             }
             else{
 
-                gm_board_cl[x][y] = gm_board[i][j];
+                api_client->game_grid[y][x] = server->game_grid[i][j];
             }
 
-            ++y;
+            ++x;
         }
 
-        ++x;
-        y = 0;
+        ++y;
+        x = 0;
     }
 
     return 0;
@@ -1036,7 +1037,7 @@ uint32_t add_new_beast(struct server_info * server){
     server->beasts.beasts[i].position.y = new_beast.y;
     server->beasts.beasts[i].in_game = 1;
     server->beasts.beasts[i].init_round_number = server->round_number;
-    set_new_character_game_board(server, &new_beast, "*");
+    set_new_character_game_board(server, &new_beast, '*');
 
     return 0;
 }
@@ -1060,7 +1061,7 @@ uint32_t add_new_coin(struct server_info * server){
         return 3;
     }
 
-    if (set_new_character_game_board(server, &new_coin, "c")){
+    if (set_new_character_game_board(server, &new_coin, 'c')){
 
         fetch_trea(&server->trea_list_head, new_coin.x, new_coin.y);
         return 4;
@@ -1088,7 +1089,7 @@ uint32_t add_new_small_treasure(struct server_info * server){
         return 3;
     }
 
-    if (set_new_character_game_board(server, &new_sm_trea, "t")){
+    if (set_new_character_game_board(server, &new_sm_trea, 't')){
 
         fetch_trea(&server->trea_list_head, new_sm_trea.x, new_sm_trea.y);
         return 4;
@@ -1116,7 +1117,7 @@ uint32_t add_new_big_treasure(struct server_info * server){
         return 3;
     }
 
-    if (set_new_character_game_board(server, &new_bg_trea, "T")){
+    if (set_new_character_game_board(server, &new_bg_trea, 'T')){
 
         fetch_trea(&server->trea_list_head, new_bg_trea.x, new_bg_trea.y);
         return 4;
@@ -1125,7 +1126,7 @@ uint32_t add_new_big_treasure(struct server_info * server){
     return 0;
 }
 
-uint32_t move_beast(struct server_info * server, uint8_t beast_num){
+uint32_t move_beast(struct server_info * server, int8_t beast_num){
 
     if (server == NULL || server->game_grid == NULL || beast_num > BEASTS_MAX_NUM){
 
@@ -1133,7 +1134,7 @@ uint32_t move_beast(struct server_info * server, uint8_t beast_num){
     }
 
     struct pos_t temp_pos;
-    uint8_t tmp_num = 0;
+    int8_t tmp_num = 0;
 
     if (server->api_client[PLAYERS_NUM].api->client_data[beast_num - 1].current_move
     == LEFT){
@@ -1263,7 +1264,7 @@ uint32_t move_beast(struct server_info * server, uint8_t beast_num){
     return 0;
 }
 
-uint32_t move_player(struct server_info * server, uint8_t player_num){
+uint32_t move_player(struct server_info * server, int8_t player_num){
 
     if (server == NULL || server->game_grid == NULL || player_num > PLAYERS_NUM){
 

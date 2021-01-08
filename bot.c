@@ -33,7 +33,7 @@ int main(void){
     }
 
     handle->api_conn->client_pid = getpid();
-    strcpy(handle->api_conn->client_type, "CPU");
+    strcpy((char*)handle->api_conn->client_type, "CPU");
 
     sem_post(handle->sem_client);
     destroy_handle(handle);
@@ -54,6 +54,7 @@ int main(void){
         
         sem_wait(mv_handle->sem_move);
 
+        system("clear");
         display_client(mv_handle->api);  // displaying after if? better or not?
 
         if (mv_handle->api->player_number == 0){
@@ -74,6 +75,7 @@ int main(void){
             sem_post(&mv_handle->intern_sem);
         }
 
+        printf("%d\n", mv_handle->api->player_number);
         mv_handle->api->player_number = 0; // not zero means that process is dead
 
         // these two fuctions take much time 

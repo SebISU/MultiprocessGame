@@ -1,4 +1,4 @@
-OUTDIR		:= build-dir
+OUTDIR		:= final_dir
 
 CC          := gcc
 CC_FLAGS    := -pedantic -Wall -g
@@ -99,4 +99,3 @@ clean:
 	${RM} ${OUTDIR}
 
 .PHONY: prepare clean
-

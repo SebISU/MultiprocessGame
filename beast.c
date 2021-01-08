@@ -32,7 +32,7 @@ int main(void){
     }
 
     handle->api_conn->client_pid = getpid();
-    strcpy(handle->api_conn->client_type, "BEAST");
+    strcpy((char*)handle->api_conn->client_type, "BEAST");
 
     sem_post(handle->sem_client);
     destroy_handle(handle);
@@ -41,7 +41,6 @@ int main(void){
 
     };
 
-    display_client(mv_handle->api);
     pthread_create(&mv_handle->key_bindings, NULL, bot_keybinding, (void*)mv_handle);
     pthread_t thd_id;
     srand(time(NULL));
@@ -51,10 +50,9 @@ int main(void){
 
         // curses.h is used, can cause a problem
         
-        sem_wait(mv_handle->sem_move);
+        //printf("%d\n", mv_handle->api->player_number);
 
-        //display_client(mv_handle->api);  // displaying after if? better or not?
-                                            // do not have to display a beast
+        sem_wait(mv_handle->sem_move);
 
         if (mv_handle->api->player_number == 0){
 

@@ -157,13 +157,6 @@ struct client_mv_handle * init_mv_beast_handle(){
         free(mv_handle);
         return NULL;
     }
-    else{
-
-        sem_close(mv_handle->sem_move);
-        close(mv_handle->api_id);
-        free(mv_handle);
-        return NULL;
-    }
 
     mv_handle->api =  (struct api_t *)mmap(NULL, sizeof(struct api_t),
     PROT_READ | PROT_WRITE, MAP_SHARED, mv_handle->api_id, 0);

@@ -33,7 +33,7 @@ int main(void){
     }
 
     handle->api_conn->client_pid = getpid();
-    strcpy(handle->api_conn->client_type, "HUMAN");
+    strcpy((char*)handle->api_conn->client_type, "HUMAN");
 
     sem_post(handle->sem_client);
     destroy_handle(handle);
@@ -55,6 +55,7 @@ int main(void){
         
         sem_wait(mv_handle->sem_move);
 
+        system("clear");
         display_client(mv_handle->api);  // displaying after if? better or not?
 
         if (mv_handle->api->player_number == 0){

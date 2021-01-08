@@ -42,8 +42,8 @@
 
     struct pos_t {
 
-        uint8_t x;
-        uint8_t y;
+        int8_t x;
+        int8_t y;
     };
 
     struct trea_data {  // I can use it to keep spawn and treasure sum info, dropped treasure, (treasure on map can be done on fly)
@@ -74,14 +74,14 @@
         pthread_t key_bindings;
         int32_t api_id;
         int32_t key_pressed;
-        uint8_t player_number;
+        int8_t player_number;
     };
 
     struct api_inner_t {
 
         struct pos_t position;
         enum move_t current_move;
-        uint8_t game_grid[5][5];
+        int8_t game_grid[5][5];
 
     };
 
@@ -94,8 +94,8 @@
         uint32_t coins_brought;
         //sem_t semaphore; // why here?
         struct api_inner_t client_data[BEASTS_MAX_NUM];
-        uint8_t type[6];
-        uint8_t player_number; // set to 0 each time on a client side so to know
+        int8_t type[6];
+        int8_t player_number; // set to 0 each time on a client side so to know
                                // that client process is still running?
                                // if not set to player number on the server side after
                                // connection succeed means server wants to disconnect
@@ -116,9 +116,9 @@
     struct api_shd_conn {
 
         pid_t client_pid;
-        uint8_t client_type[6];
-        uint8_t player_number;
-        uint8_t beasts_in_game;
+        int8_t client_type[6];
+        int8_t player_number;
+        int8_t beasts_in_game;
     };
 
     struct api_wrap_conn {
@@ -133,26 +133,26 @@
         uint32_t coins_carried;
         uint32_t coins_brought;
         uint32_t deaths;
-        uint8_t client_type[6];
+        int8_t client_type[6];
         struct pos_t curr_position;
         struct pos_t prev_position;
         struct pos_t spawn_position;
-        uint8_t into_bushes;
-        uint8_t player_number;
+        int8_t into_bushes;
+        int8_t player_number;
     };
 
     struct beast_info {     // beast dies after x rounds
 
         struct pos_t position;
         uint64_t init_round_number;
-        uint8_t in_game;    // if currently running
+        int8_t in_game;    // if currently running
     };
 
     struct beasts_t {
 
         pid_t beasts_pid;
         struct beast_info beasts[BEASTS_MAX_NUM];
-        uint8_t client_number;
+        int8_t client_number;
     };
 
     struct server_info {
@@ -164,7 +164,7 @@
         struct pos_t camp_position;
         struct api_wrap_conn api_conn;
         struct api_wrap_t api_client[PLAYERS_NUM + 1];
-        uint8_t ** game_grid;
+        int8_t ** game_grid;
         struct client_info players[PLAYERS_NUM];
         struct beasts_t beasts;
         int32_t key_pressed;
@@ -179,8 +179,8 @@
 
     };
 
-    uint32_t add_trea(struct trea_node ** head, uint8_t x, uint8_t y , uint32_t value);
-    uint32_t fetch_trea(struct trea_node ** head, uint8_t x, uint8_t y);
+    uint32_t add_trea(struct trea_node ** head, int8_t x, int8_t y , uint32_t value);
+    uint32_t fetch_trea(struct trea_node ** head, int8_t x, int8_t y);
     void destroy_trea(struct trea_node ** head);
     
     void display_client(struct api_t * client);
@@ -192,7 +192,7 @@
     uint32_t init_semaphores(struct server_info * server);
     void destroy_semaphores(struct server_info * server); 
     
-    struct server_info * init_server(uint8_t ** gm_board);
+    struct server_info * init_server(int8_t ** gm_board);
     void destroy_server(struct server_info * server);
 
     void * server_keybinding(void * svr);
@@ -201,19 +201,19 @@
     uint32_t add_new_small_treasure(struct server_info * server);
     uint32_t add_new_big_treasure(struct server_info * server);
 
-    uint32_t move_beast(struct server_info * server, uint8_t beast_num);
-    uint32_t move_player(struct server_info * server, uint8_t player_num);
+    uint32_t move_beast(struct server_info * server, int8_t beast_num);
+    uint32_t move_player(struct server_info * server, int8_t player_num);
     
-    uint32_t select_random_position(uint8_t **gm_board, struct pos_t * position);
-    uint32_t set_new_character_game_board(struct server_info * server, const struct pos_t * position, uint8_t figure);
+    uint32_t select_random_position(int8_t **gm_board, struct pos_t * position);
+    uint32_t set_new_character_game_board(struct server_info * server, const struct pos_t * position, int8_t figure);
     uint32_t reset_player_info(struct client_info * player);
     uint32_t reset_beasts_info(struct beasts_t * beasts);
     uint32_t reset_api_client(struct api_t * api_client);
     uint32_t prepare_new_player(struct server_info * server);
     uint32_t prepare_beast(struct server_info * server);
-    uint32_t update_api_client(struct server_info * server, uint8_t client_num);
+    uint32_t update_api_client(struct server_info * server, int8_t client_num);
     uint32_t update_all_api_client(struct server_info * server);
-    uint32_t set_client_game_board(uint8_t ** gm_board, uint8_t ** gm_board_cl, const struct pos_t * position);
+    uint32_t set_client_game_board(struct server_info * server, struct api_inner_t * api_client, const struct pos_t * position);
 
 
     void * handle_connections(void * server);
@@ -229,7 +229,7 @@
     struct client_handle * init_handle();
     void destroy_handle(struct client_handle * handle);
 
-    struct client_mv_handle * init_mv_handle(const uint8_t player_number);
+    struct client_mv_handle * init_mv_handle(const int8_t player_number);
     void destroy_mv_handle(struct client_mv_handle * mv_handle);
 
     void * client_keybinding(void * handle);
