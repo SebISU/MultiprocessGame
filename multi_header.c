@@ -607,21 +607,29 @@ void * handle_connections(void * svr){
 
     struct server_info * server = (struct server_info *)svr;
 
+    if (update_api_conn(server)){
+
+        return NULL;
+    }
+
     while(1){
-
-        if (update_api_conn(server)){
-
-            return NULL;
-        }
 
         sem_post(server->sem_server);
 
         sem_wait(server->sem_client);
 
         pthread_mutex_lock(&server->mutex);
+        printf("\n\nSEE 1\n\n");
         accept_new_connection(server);  // what happen if connecting will fail
-        pthread_mutex_unlock(&server->mutex);
+        printf("\n\nSEE 2\n\n");
+        if (update_api_conn(server)){
 
+            pthread_mutex_unlock(&server->mutex);
+            return NULL;
+        }
+        printf("\n\nSEE 3\n\n");
+        pthread_mutex_unlock(&server->mutex);
+        printf("\n\nSEE 4\n\n");
     }
 
     return NULL;
@@ -676,9 +684,9 @@ uint32_t update_api_conn(struct server_info * server){
     if (i < PLAYERS_NUM){
 
         server->api_conn.api->player_number = i + 1;
-        pthread_mutex_lock(&server->mutex);
+        //pthread_mutex_lock(&server->mutex);
         server->players[i].player_number = i + 1; // mutex probably does not required
-        pthread_mutex_unlock(&server->mutex);     // only one place, where value can be changed
+        //ypthread_mutex_unlock(&server->mutex);     // only one place, where value can be changed
     }                                             // to > 0
 
     server->api_conn.api->client_pid = -1;
@@ -764,7 +772,10 @@ uint32_t prepare_new_player(struct server_info * server){
     server->players[server->api_conn.api->player_number - 1].spawn_position.x;
     server->players[server->api_conn.api->player_number - 1].curr_position.y =
     server->players[server->api_conn.api->player_number - 1].spawn_position.y;
-
+    server->players[server->api_conn.api->player_number - 1].prev_position.x =
+    server->players[server->api_conn.api->player_number - 1].spawn_position.x;
+    server->players[server->api_conn.api->player_number - 1].prev_position.y =
+    server->players[server->api_conn.api->player_number - 1].spawn_position.y;
     // where are if conditions in case of problems with these funcs?
 
     set_new_character_game_board(server,
@@ -793,11 +804,13 @@ uint32_t update_api_client(struct server_info * server, int8_t client_num){
 
         return 1;
     }
-    //printf("HERO 1 %d\n", client_num);
+
     if (client_num > 0 && client_num <= PLAYERS_NUM){
-    //printf("HERO 2 %d\n", client_num);
+
         if (server->players[client_num - 1].player_number > 0
         && server->players[client_num - 1].client_pid >= 0){ // shouldn't cause a problem
+
+    //printf("UPDate %d\n", client_num);
 
             server->api_client[client_num - 1].api->round_number = server->round_number;
             server->api_client[client_num - 1].api->server_pid = server->server_pid;
@@ -812,11 +825,9 @@ uint32_t update_api_client(struct server_info * server, int8_t client_num){
             server->api_client[client_num - 1].api->client_data->position.y =
             server->players[client_num - 1].curr_position.y;
             server->api_client[client_num - 1].api->client_data->current_move = NO_MOVE;
-                //printf("HERO 22 %d\n", client_num);
             set_client_game_board(server,
             server->api_client[client_num - 1].api->client_data,
             &server->api_client[client_num - 1].api->client_data->position);
-                //printf("HERO 23 %d\n", client_num);
             strcpy((char*)server->api_client[client_num - 1].api->type,
             (char*)server->players[client_num - 1].client_type);
             server->api_client[client_num - 1].api->player_number =
@@ -824,8 +835,10 @@ uint32_t update_api_client(struct server_info * server, int8_t client_num){
         }
     }
     else if (client_num == PLAYERS_NUM + 1){
-    //printf("HERO 3%d\n", client_num);
+
         if (server->beasts.client_number > 0 && server->beasts.beasts_pid >= 0){
+
+    //printf("UPDate %d\n", client_num);
 
             server->api_client[client_num - 1].api->round_number = server->round_number;
             server->api_client[client_num - 1].api->server_pid = server->server_pid;
@@ -855,7 +868,7 @@ uint32_t update_api_client(struct server_info * server, int8_t client_num){
         }
     }
     else{
-    //printf("HERO 4%d\n", client_num);
+
         return 2;
     }
 
@@ -894,7 +907,7 @@ const struct pos_t * position, int8_t figure){
         return 2;
     }
 
-    if (NULL == strchr("1234A*ctTD", (int32_t)figure)){ // casted because strchr takes int, cherry on top...
+    if (NULL == strchr("1234 A*ctTD", (int32_t)figure)){ // casted because strchr takes int, cherry on top...
 
         return 3;
     }
@@ -954,7 +967,7 @@ void * server_keybinding(void * svr){
     while(1){
 
         //improve this, now it does not work
-        server->key_pressed = getch();
+        server->key_pressed = 0;//getch();
 
         if (server->key_pressed == 'q' || server->key_pressed == 'Q'){
 
@@ -1292,6 +1305,15 @@ uint32_t move_player(struct server_info * server, int8_t player_num){
 
         temp_pos.x = server->players[player_num - 1].curr_position.x;
         temp_pos.y = server->players[player_num - 1].curr_position.y + 1;
+    }
+    else if (server->api_client[player_num - 1].api->client_data->current_move == QUIT){
+
+        set_new_character_game_board(server, &server->players[player_num - 1].curr_position, ' ');
+        reset_player_info(server->players + player_num - 1);
+        server->api_client[player_num - 1].api->client_data->current_move = NO_MOVE;
+        update_api_conn(server);
+
+        return 0;
     }
     else {
 

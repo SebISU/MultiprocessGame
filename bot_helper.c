@@ -7,7 +7,7 @@ void * bot_keybinding(void * handle){
     while(1){
 
         //improve this, now it does not work
-        mv_handle->key_pressed = getch();
+        mv_handle->key_pressed = 0;//getch();
 
         // without this should work too  ??
         if (mv_handle->key_pressed == 'q' || mv_handle->key_pressed == 'Q'){

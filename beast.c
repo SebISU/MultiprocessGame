@@ -38,7 +38,8 @@ int main(void){
     destroy_handle(handle);
 
     while(mv_handle->api->player_number != 5){      // beasts as a 5th player
-
+        printf("BEAST\n");
+        usleep(100000);
     };
 
     pthread_create(&mv_handle->key_bindings, NULL, bot_keybinding, (void*)mv_handle);
@@ -62,6 +63,7 @@ int main(void){
 
         if (mv_handle->key_pressed == 'q' || mv_handle->key_pressed == 'Q'){
 
+            // bot and client managed differently. Look how it is done.
             printf("\n\nTHANKS FOR THE GAME\n\n");
             break;
         }

@@ -39,16 +39,18 @@ int main(void){
     destroy_handle(handle);
 
     while(mv_handle->api->player_number != mv_handle->player_number){
-
+        printf("BOT\n");
+        usleep(100000);
     };
 
     display_client(mv_handle->api);
     pthread_create(&mv_handle->key_bindings, NULL, bot_keybinding, (void*)mv_handle);
     struct pos_t beast = {.x = 5, .y = 5};
     srand(time(NULL));
+    //int t = 0;
 
     while(1){
-
+        //t++;
         // here catching moves
         // curses.h is used, can cause a problem
         
@@ -63,8 +65,15 @@ int main(void){
             break;
         }
 
+        // if (t == 10){
+
+        //     mv_handle->key_pressed = 'q';
+        // }
+
         if (mv_handle->key_pressed == 'q' || mv_handle->key_pressed == 'Q'){
 
+            mv_handle->api->client_data->current_move = QUIT;
+            mv_handle->api->player_number = 0;
             printf("\n\nTHANKS FOR THE GAME\n\n");
             break;
         }

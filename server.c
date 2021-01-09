@@ -62,6 +62,8 @@ int main(void){
         return 2;
     }
 
+    pthread_mutex_lock(&server->mutex);
+
     while(1){
 
         system("clear");
@@ -94,6 +96,8 @@ int main(void){
             sem_post(server->sem_client_5);
         }
 
+        pthread_mutex_unlock(&server->mutex);
+
 // 1. when 100 rounds per sec. problem with SERVER CONNECTION LOST on the beast side. Server updates
 // so often that beast has no enough time to perform a cycle. Server sets 0 to api client_num
 // and disconnects beast because beast hasn't set it to 0 (sign that connection exist).
@@ -101,10 +105,10 @@ int main(void){
 // is already killed because server hasn't had enough time to update beasts. Info about beast already exists
 // doesn't work when 100 rounds per sec. and a new "client" wants to be a beast.
 
-        printf("\n\nNEXT LOCK\n\n");
-
 
         usleep(1000000); // time for move
+
+        printf("\n\nNEXT LOCK\n\n");
 
         pthread_mutex_lock(&server->mutex);
         printf("\nMUTEX START %lu\n", server->round_number + 1);
@@ -139,13 +143,13 @@ int main(void){
             sem_post(&server->sem_keybinding);
         }
 
-        printf("%lu CHECK 1 \n", server->round_number);
+        // printf("%lu CHECK 1 \n", server->round_number);
 
-        for (int32_t i = 0; i < PLAYERS_NUM; ++i){
+        // for (int32_t i = 0; i < PLAYERS_NUM; ++i){
 
-            printf(" %d PL_NUM: %d PL_PID: %d\n", i, server->players[i].player_number, server->players[i].client_pid);
-            printf(" %d API_NUM: %d API_PID: %d\n", i, server->api_client[i].api->player_number);
-        }
+        //     printf(" %d PL_NUM: %d PL_PID: %d\n", i, server->players[i].player_number, server->players[i].client_pid);
+        //     printf(" %d API_NUM: %d API_PID: %d\n", i, server->api_client[i].api->player_number);
+        // }
 
         server->round_number++;
 
@@ -185,6 +189,7 @@ int main(void){
                 // this info will not be updated in api because update if client_num > 0 and pid >= 0
                 reset_beasts_info(&server->beasts);
                 server->api_conn.api->beasts_in_game = 0;
+                update_api_conn(server);
             }
         }
 
@@ -200,27 +205,46 @@ int main(void){
                 }
                 else{
 
+                    if (i == 0){
+
+                        sem_wait(server->sem_client_1);
+                    }
+                    else if (i == 1){
+
+                        sem_wait(server->sem_client_2);
+                    }
+                    else if (i == 2){
+
+                        sem_wait(server->sem_client_3);
+                    }
+                    else{
+
+                        sem_wait(server->sem_client_4);
+                    }
+
                     set_new_character_game_board(server, &server->players[i].curr_position, ' ');
                     reset_player_info(server->players + i);
                     server->api_client[i].api->player_number = 0;
+                    // here the same as in multi_header.c:1310?
+                    update_api_conn(server);
                 }   
             }
         }
 
-        printf("%lu CHECK 2 \n", server->round_number);
+        // printf("%lu CHECK 2 \n", server->round_number);
 
-        for (int32_t i = 0; i < PLAYERS_NUM; ++i){
+        // for (int32_t i = 0; i < PLAYERS_NUM; ++i){
 
-            printf(" %d PL_NUM: %d PL_PID: %d\n", i, server->players[i].player_number, server->players[i].client_pid);
-            printf(" %d API_NUM: %d\n", i, server->api_client[i].api->player_number);
-        }
+        //     printf(" %d PL_NUM: %d PL_PID: %d\n", i, server->players[i].player_number, server->players[i].client_pid);
+        //     printf(" %d API_NUM: %d\n", i, server->api_client[i].api->player_number);
+        // }
 
         update_all_api_client(server);
 
         printf("\nMUTEX END %lu\n", server->round_number);
         pthread_mutex_unlock(&server->mutex);
 
-        //sleep(3);
+        //sleep(2);
     };
 
     destroy_server(server);

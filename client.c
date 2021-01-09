@@ -42,7 +42,8 @@ int main(void){
     // here problem when connection accepted but server wanted to stop and set pl_num to 0
     // kill the process after determined period (3s?)
     while(mv_handle->api->player_number != mv_handle->player_number){
-
+        printf("CLIENT\n");
+        usleep(100000);
     };
 
     display_client(mv_handle->api);
@@ -51,7 +52,7 @@ int main(void){
     while(1){
 
         // here catching moves
-        // curses.h is used, can cause a problem
+        // curses.h is used
         
         sem_wait(mv_handle->sem_move);
 
@@ -64,11 +65,14 @@ int main(void){
             break;
         }
 
+        mv_handle->api->player_number = 0;
+
         if (mv_handle->key_pressed != 0){
 
             if (mv_handle->key_pressed == 'q' || mv_handle->key_pressed == 'Q'){
 
-                mv_handle->api->client_data->current_move = QUIT; // does not required
+                mv_handle->api->client_data->current_move = QUIT;
+                mv_handle->api->player_number = 0;
                 printf("\n\nTHANKS FOR THE GAME\n\n");
                 break;
             }
@@ -92,8 +96,6 @@ int main(void){
             mv_handle->key_pressed = 0;
             sem_post(&mv_handle->intern_sem);
         }
-
-        mv_handle->api->player_number = 0;
 
     }
 
