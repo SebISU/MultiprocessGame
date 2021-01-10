@@ -42,6 +42,9 @@ int main(void){
         usleep(100000);
     };
 
+    initscr();
+    keypad(stdscr, TRUE);
+    noecho();
     pthread_create(&mv_handle->key_bindings, NULL, bot_keybinding, (void*)mv_handle);
     pthread_t thd_id;
     srand(time(NULL));
@@ -83,7 +86,7 @@ int main(void){
         }
     }
 
-    destroy_mv_handle(mv_handle);
+    destroy_mv_beast_handle(mv_handle);
 
     return 0;
 }

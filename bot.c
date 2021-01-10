@@ -44,7 +44,12 @@ int main(void){
     };
 
     display_client(mv_handle->api);
+
+    initscr();
+    keypad(stdscr, TRUE);
+    noecho();
     pthread_create(&mv_handle->key_bindings, NULL, bot_keybinding, (void*)mv_handle);
+    
     struct pos_t beast = {.x = 5, .y = 5};
     srand(time(NULL));
     //int t = 0;

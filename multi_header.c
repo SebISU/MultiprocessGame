@@ -521,6 +521,7 @@ void destroy_server(struct server_info * server){
 
     if (server != NULL){
 
+        endwin();
         destroy_semaphores(server);
         destroy_shd_memories(server->api_client, &server->api_conn);
         pthread_mutex_destroy(&server->mutex);
@@ -967,7 +968,7 @@ void * server_keybinding(void * svr){
     while(1){
 
         //improve this, now it does not work
-        server->key_pressed = 0;//getch();
+        server->key_pressed = getch();
 
         if (server->key_pressed == 'q' || server->key_pressed == 'Q'){
 

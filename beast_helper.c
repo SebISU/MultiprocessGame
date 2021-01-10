@@ -188,6 +188,8 @@ void destroy_mv_beast_handle(struct client_mv_handle * mv_handle){
 
     if (mv_handle != NULL){
 
+        endwin();
+
         if (mv_handle->sem_move != SEM_FAILED){
 
             sem_close(mv_handle->sem_move);

@@ -36,7 +36,7 @@
 #include <semaphore.h>
 #include <fcntl.h>
 #include <pthread.h>
-#include <curses.h>
+#include <ncurses.h>
 
     enum move_t {DOWN, UP, LEFT, RIGHT, NO_MOVE, QUIT};
 

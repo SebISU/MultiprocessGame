@@ -47,6 +47,10 @@ int main(void){
     };
 
     display_client(mv_handle->api);
+
+    initscr();
+    keypad(stdscr, TRUE);
+    noecho();
     pthread_create(&mv_handle->key_bindings, NULL, client_keybinding, (void*)mv_handle);
 
     while(1){

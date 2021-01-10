@@ -45,6 +45,10 @@ int main(void){
         return 1;
     }
 
+    initscr();
+    keypad(stdscr, TRUE);
+    noecho();
+
     pthread_t thd_keybinding;
     pthread_t thd_connections;
 

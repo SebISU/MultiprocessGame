@@ -193,6 +193,8 @@ void destroy_mv_handle(struct client_mv_handle * mv_handle){
 
     if (mv_handle != NULL){
 
+        endwin();
+
         if (mv_handle->sem_move != SEM_FAILED){
 
             sem_close(mv_handle->sem_move);
@@ -222,7 +224,7 @@ void * client_keybinding(void * handle){
     while(1){
 
         //improve this, now it does not work
-        mv_handle->key_pressed = 0;//getch();
+        mv_handle->key_pressed = getch();
 
         // without this should work too     ??
         if (mv_handle->key_pressed == 'q' || mv_handle->key_pressed == 'Q'){
