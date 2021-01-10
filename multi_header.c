@@ -977,7 +977,7 @@ void * server_keybinding(void * svr){
 
     struct server_info * server = (struct server_info *)svr;
 
-    WINDOW * key_win = newwin(5, 5, 25, 0);
+    WINDOW * key_win = newwin(1, 1, 25, 0);
     keypad(key_win, TRUE);
 
     while(1){
