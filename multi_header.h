@@ -1,5 +1,7 @@
 #ifndef MULTI_HEADER_H
+
 #define MULTI_HEADER_H
+
 #define SHD_MEM_1 "/shd_mem1"
 #define SHD_MEM_2 "/shd_mem2"
 #define SHD_MEM_3 "/shd_mem3"
