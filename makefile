@@ -6,8 +6,6 @@ CC_FLAGS    := -pedantic -Wall -g
 LD			:= gcc
 LD_LIBS		:= -lpthread -lncurses -lrt
 
-# -lncursesw ?
-
 RM			:= rm -rf
 MKDIR 		:= mkdir -p
 
@@ -59,19 +57,19 @@ prep_beast: ${OUTDIR}/beast.o ${OUTDIR}/beast_helper.o ${OUTDIR}/client_helper.o
 
 ${OUTDIR}/server.o: server.c multi_header.h
 	@ echo "Building a file 'server.o' from 'server.c' ... "
-	${CC} ${CC_FLAGS} -c server.c -o ${OUTDIR}/server.o
+	${CC} ${CC_FLAGS} -c server.c -o $@
 
 ${OUTDIR}/multi_header.o: multi_header.c multi_header.h
 	@ echo "Building a file 'multi_header.o' from 'multi_header.c' ... "
-	${CC} ${CC_FLAGS} -c multi_header.c -o ${OUTDIR}/multi_header.o
+	${CC} ${CC_FLAGS} -c multi_header.c -o $@
 
 ${OUTDIR}/client.o: client.c multi_header.h
 	@ echo "Building a file 'client.o' from 'client.c' ... "
-	${CC} ${CC_FLAGS} -c client.c -o ${OUTDIR}/client.o
+	${CC} ${CC_FLAGS} -c client.c -o $@
 
 ${OUTDIR}/client_helper.o: client_helper.c multi_header.h
 	@ echo "Building a file 'client_helper.o' from 'client_helper.c' ... "
-	${CC} ${CC_FLAGS} -c client_helper.c -o ${OUTDIR}/client_helper.o
+	${CC} ${CC_FLAGS} -c client_helper.c -o $@
 
 ${OUTDIR}/bot.o: bot.c multi_header.h
 	@ echo "Building a file 'bot.o' from 'bot.c' ... "
@@ -79,15 +77,15 @@ ${OUTDIR}/bot.o: bot.c multi_header.h
 
 ${OUTDIR}/bot_helper.o: bot_helper.c multi_header.h
 	@ echo "Building a file 'bot_helper.o' from 'bot_helper.c' ... "
-	${CC} ${CC_FLAGS} -c bot_helper.c -o ${OUTDIR}/bot_helper.o
+	${CC} ${CC_FLAGS} -c bot_helper.c -o $@
 
 ${OUTDIR}/beast.o: beast.c multi_header.h
 	@ echo "Building a file 'beast.o' from 'beast.c' ... "
-	${CC} ${CC_FLAGS} -c beast.c -o ${OUTDIR}/beast.o
+	${CC} ${CC_FLAGS} -c beast.c -o $@
 
 ${OUTDIR}/beast_helper.o: beast_helper.c multi_header.h
 	@ echo "Building a file 'beast_helper.o' from 'beast_helper.c' ... "
-	${CC} ${CC_FLAGS} -c beast_helper.c -o ${OUTDIR}/beast_helper.o
+	${CC} ${CC_FLAGS} -c beast_helper.c -o $@
 
 
 .prepare: ${OUTDIR}

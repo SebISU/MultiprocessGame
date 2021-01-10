@@ -96,47 +96,77 @@ void display_server(struct server_info* server){
 
     if (server != NULL){
 
-        printf("%-54sServer`s PID: %u\n", *server->game_grid, server->server_pid);
-        printf("%-55sCampsite X/Y: %u/%u\n", *(server->game_grid + 1), server->camp_position.x,
+        clear();
+
+        move(0, 0);
+        printw("%-54sServer`s PID: %u", *server->game_grid, server->server_pid);
+        move(1, 0);
+        printw("%-55sCampsite X/Y: %u/%u", *(server->game_grid + 1), server->camp_position.x,
         server->camp_position.y);
-        printf("%-55sRound number: %lu\n", *(server->game_grid + 2), server->round_number);
-        printf("%s\n", *(server->game_grid + 3));
-        printf("%-54sParameter:   Player1  Player2  Player3  Player4\n", *(server->game_grid + 4));
-        printf("%-55sPID:         %-9d%-9d%-9d%-9d\n", *(server->game_grid + 5),
+        move(2, 0);
+        printw("%-55sRound number: %lu", *(server->game_grid + 2), server->round_number);
+        move(3, 0);
+        printw("%s\n", *(server->game_grid + 3));
+        move(4, 0);
+        printw("%-54sParameter:   Player1  Player2  Player3  Player4", *(server->game_grid + 4));
+        move(5, 0);
+        printw("%-55sPID:         %-9d%-9d%-9d%-9d", *(server->game_grid + 5),
         (server->players)->client_pid, (server->players + 1)->client_pid,
         (server->players + 2)->client_pid, (server->players + 3)->client_pid);
-        printf("%-55sType:        %-9s%-9s%-9s%-9s\n", *(server->game_grid + 6),
+        move(6, 0);
+        printw("%-55sType:        %-9s%-9s%-9s%-9s", *(server->game_grid + 6),
         (server->players)->client_type, (server->players + 1)->client_type,
         (server->players + 2)->client_type, (server->players + 3)->client_type);
-        printf("%-55sCurr X/Y:    %02u/%02u    %02u/%02u    %02u/%02u    %02u/%02u\n",
+        move(7, 0);
+        printw("%-55sCurr X/Y:    %02u/%02u    %02u/%02u    %02u/%02u    %02u/%02u",
         *(server->game_grid + 7), (server->players)->curr_position.x,
         (server->players)->curr_position.y, (server->players + 1)->curr_position.x,
         (server->players + 1)->curr_position.y, (server->players + 2)->curr_position.x,
         (server->players + 2)->curr_position.y, (server->players + 3)->curr_position.x,
         (server->players + 3)->curr_position.y);
-        printf("%-55sDeaths:      %-9u%-9u%-9u%-9u\n", *(server->game_grid + 8),
+        move(8, 0);
+        printw("%-55sDeaths:      %-9u%-9u%-9u%-9u", *(server->game_grid + 8),
         (server->players)->deaths, (server->players + 1)->deaths, (server->players + 2)->deaths,
         (server->players + 3)->deaths);
-        printf("%s\n", *(server->game_grid + 9));
-        printf("%-54sCoins:\n", *(server->game_grid + 10));
-        printf("%-55scarried      %-9u%-9u%-9u%-9u\n", *(server->game_grid + 11),
+        move(9, 0);
+        printw("%s", *(server->game_grid + 9));
+        move(10, 0);
+        printw("%-54sCoins:", *(server->game_grid + 10));
+        move(11, 0);
+        printw("%-55scarried      %-9u%-9u%-9u%-9u", *(server->game_grid + 11),
         (server->players)->coins_carried, (server->players + 1)->coins_carried,
         (server->players + 2)->coins_carried, (server->players + 3)->coins_carried);
-        printf("%-55sbrought      %-9u%-9u%-9u%-9u\n", *(server->game_grid + 12),
+        move(12, 0);
+        printw("%-55sbrought      %-9u%-9u%-9u%-9u", *(server->game_grid + 12),
         (server->players)->coins_brought, (server->players + 1)->coins_brought,
         (server->players + 2)->coins_brought, (server->players + 3)->coins_brought);
-        printf("%s\n", *(server->game_grid + 13));
-        printf("%s\n", *(server->game_grid + 14));
-        printf("%-54sLegend:\n", *(server->game_grid + 15));
-        printf("%-55s1234 - players\n", *(server->game_grid + 16));
-        printf("%-55s#    - wall\n", *(server->game_grid + 17));
-        printf("%-55s~    - bushes (slow down)\n", *(server->game_grid + 18));
-        printf("%-55s*    - enemy\n", *(server->game_grid + 19));
-        printf("%-55sD    - dropped treasure\n", *(server->game_grid + 20));
-        printf("%-55sc    - one coin\n", *(server->game_grid + 21));
-        printf("%-55sC    - treasure (10 coins)\n", *(server->game_grid + 22));
-        printf("%-55sT    - large treasure (50 coins)\n", *(server->game_grid + 23));
-        printf("%-55sA    - campsite\n", *(server->game_grid + 24));
+        move(13, 0);
+        printw("%s", *(server->game_grid + 13));
+        move(14, 0);
+        printw("%s", *(server->game_grid + 14));
+        move(15, 0);
+        printw("%-54sLegend:", *(server->game_grid + 15));
+        move(16, 0);
+        printw("%-55s1234 - players", *(server->game_grid + 16));
+        move(17, 0);
+        printw("%-55s#    - wall", *(server->game_grid + 17));
+        move(18, 0);
+        printw("%-55s~    - bushes (slow down)", *(server->game_grid + 18));
+        move(19, 0);
+        printw("%-55s*    - enemy", *(server->game_grid + 19));
+        move(20, 0);
+        printw("%-55sD    - dropped treasure", *(server->game_grid + 20));
+        move(21, 0);
+        printw("%-55sc    - one coin", *(server->game_grid + 21));
+        move(22, 0);
+        printw("%-55sC    - treasure (10 coins)", *(server->game_grid + 22));
+        move(23, 0);
+        printw("%-55sT    - large treasure (50 coins)", *(server->game_grid + 23));
+        move(24, 0);
+        printw("%-55sA    - campsite", *(server->game_grid + 24));
+
+        move(25, 0);
+        refresh();
     }
 }
 
@@ -156,7 +186,7 @@ uint32_t init_shd_memories(struct api_wrap_t * api_client, struct api_wrap_conn 
 
     int32_t status;
 
-    api_conn->api_id = shm_open(SHD_MEM_CONN, O_CREAT | O_RDWR, 0600); // if problem try to fiddle with chmod
+    api_conn->api_id = shm_open(SHD_MEM_CONN, O_CREAT | O_RDWR, 0600);
 
     if (api_conn->api_id == -1){
 
@@ -237,7 +267,7 @@ void destroy_shd_memories(struct api_wrap_t * api_client, struct api_wrap_conn *
 
         if (api_conn->api != NULL){
 
-            munmap(api_conn->api, sizeof(struct api_shd_conn)); // can check return value if not error
+            munmap(api_conn->api, sizeof(struct api_shd_conn));
         }
 
         close(api_conn->api_id);
@@ -250,7 +280,7 @@ void destroy_shd_memories(struct api_wrap_t * api_client, struct api_wrap_conn *
 
             if ((api_client + i)->api != NULL){
 
-                munmap((api_client + i)->api, sizeof(struct api_t)); // can check too
+                munmap((api_client + i)->api, sizeof(struct api_t));
             }
 
             if ((api_client + i)->api_id != -1){
@@ -413,9 +443,6 @@ uint32_t select_random_position(int8_t **gm_board, struct pos_t * position){
     srand(time(NULL));
 
     int8_t x, y;
-
-    // should add a condition in case of no free positions available
-    // 1300 fields in the board. 10000 loops as a limit?
 
     do{
 
@@ -601,7 +628,7 @@ uint32_t reset_api_client(struct api_t * api_client){
 
 void * handle_connections(void * svr){
 
-    if (svr == NULL){   // for sure, too detailed?
+    if (svr == NULL){
 
         return NULL;
     }
@@ -620,17 +647,16 @@ void * handle_connections(void * svr){
         sem_wait(server->sem_client);
 
         pthread_mutex_lock(&server->mutex);
-        printf("\n\nSEE 1\n\n");
-        accept_new_connection(server);  // what happen if connecting will fail
-        printf("\n\nSEE 2\n\n");
+
+        accept_new_connection(server);
+
         if (update_api_conn(server)){
 
             pthread_mutex_unlock(&server->mutex);
             return NULL;
         }
-        printf("\n\nSEE 3\n\n");
+
         pthread_mutex_unlock(&server->mutex);
-        printf("\n\nSEE 4\n\n");
     }
 
     return NULL;
@@ -667,7 +693,7 @@ uint32_t update_api_conn(struct server_info * server){
     }
 
     if (server->api_conn.api->player_number != 0){ // accepted connection sets player_num to 0
-                                                    // think if needed
+
         server->api_conn.api->client_pid = -1;
         return 0;
     }
@@ -685,10 +711,9 @@ uint32_t update_api_conn(struct server_info * server){
     if (i < PLAYERS_NUM){
 
         server->api_conn.api->player_number = i + 1;
-        //pthread_mutex_lock(&server->mutex);
-        server->players[i].player_number = i + 1; // mutex probably does not required
-        //ypthread_mutex_unlock(&server->mutex);     // only one place, where value can be changed
-    }                                             // to > 0
+
+        server->players[i].player_number = i + 1;     
+    }
 
     server->api_conn.api->client_pid = -1;
 
@@ -716,9 +741,7 @@ uint32_t accept_new_connection(struct server_info * server){
 
             if (server->players[i].player_number == server->api_conn.api->player_number){
 
-                reset_player_info(server->players + i); // redundant, done in main thread and init_server()
                 prepare_new_player(server);
-                //update_api_client(server, i + 1);
                 server->api_conn.api->player_number = 0;
 
                 break;
@@ -739,9 +762,7 @@ uint32_t accept_new_connection(struct server_info * server){
         }
         else{
 
-            reset_beasts_info(&server->beasts); // redundant, done in main thread and init_server()
             prepare_beast(server);
-            //update_api_client(server, PLAYERS_NUM + 1);
         }
     }
     else {
@@ -777,7 +798,6 @@ uint32_t prepare_new_player(struct server_info * server){
     server->players[server->api_conn.api->player_number - 1].spawn_position.x;
     server->players[server->api_conn.api->player_number - 1].prev_position.y =
     server->players[server->api_conn.api->player_number - 1].spawn_position.y;
-    // where are if conditions in case of problems with these funcs?
 
     set_new_character_game_board(server,
     &server->players[server->api_conn.api->player_number - 1].spawn_position,
@@ -809,9 +829,7 @@ uint32_t update_api_client(struct server_info * server, int8_t client_num){
     if (client_num > 0 && client_num <= PLAYERS_NUM){
 
         if (server->players[client_num - 1].player_number > 0
-        && server->players[client_num - 1].client_pid >= 0){ // shouldn't cause a problem
-
-    //printf("UPDate %d\n", client_num);
+        && server->players[client_num - 1].client_pid >= 0){
 
             server->api_client[client_num - 1].api->round_number = server->round_number;
             server->api_client[client_num - 1].api->server_pid = server->server_pid;
@@ -838,8 +856,6 @@ uint32_t update_api_client(struct server_info * server, int8_t client_num){
     else if (client_num == PLAYERS_NUM + 1){
 
         if (server->beasts.client_number > 0 && server->beasts.beasts_pid >= 0){
-
-    //printf("UPDate %d\n", client_num);
 
             server->api_client[client_num - 1].api->round_number = server->round_number;
             server->api_client[client_num - 1].api->server_pid = server->server_pid;
@@ -908,7 +924,7 @@ const struct pos_t * position, int8_t figure){
         return 2;
     }
 
-    if (NULL == strchr("1234 A*ctTD", (int32_t)figure)){ // casted because strchr takes int, cherry on top...
+    if (NULL == strchr("1234 A*ctTD", (int32_t)figure)){
 
         return 3;
     }
@@ -957,18 +973,18 @@ const struct pos_t * position){
     return 0;
 }
 
-// Uses mutexes when sth new is added to the game. When q/Q pressed thread terminates
-// with keypressed = q set in server struct. Main thread checks if q is set. If so
-// terminates the game.
-
 void * server_keybinding(void * svr){
 
     struct server_info * server = (struct server_info *)svr;
 
+    WINDOW * key_win = newwin(5, 5, 25, 0);
+    keypad(key_win, TRUE);
+
     while(1){
 
-        //improve this, now it does not work
-        server->key_pressed = getch();
+        server->key_pressed = wgetch(key_win);
+
+        flushinp();
 
         if (server->key_pressed == 'q' || server->key_pressed == 'Q'){
 
@@ -1188,20 +1204,6 @@ uint32_t move_beast(struct server_info * server, int8_t beast_num){
         server->beasts.beasts[beast_num - 1].position.x = temp_pos.x;
         server->beasts.beasts[beast_num - 1].position.y = temp_pos.y;
     }
-    // better or not?
-    // else if (server->game_grid[temp_pos.y][temp_pos.x] == 'c' 
-    // || server->game_grid[temp_pos.y][temp_pos.x] == 't' 
-    // || server->game_grid[temp_pos.y][temp_pos.x] == 'T'){
-
-    //     fetch_trea(&server->trea_list_head, temp_pos.x, temp_pos.y);
-    //     set_new_character_game_board(server, 
-    //     &server->beasts.beasts[beast_num - 1].position, ' ');
-    //     set_new_character_game_board(server, 
-    //     &temp_pos, '*');
-    //     server->beasts.beasts[beast_num - 1].position.x = temp_pos.x;
-    //     server->beasts.beasts[beast_num - 1].position.y = temp_pos.y;
-    // }
-    // can rewrite using value - '0' - 1, but now code is clearer
     else if (server->game_grid[temp_pos.y][temp_pos.x] == '1'){
 
         tmp_num = 1;
@@ -1456,11 +1458,6 @@ uint32_t move_player(struct server_info * server, int8_t player_num){
     || server->game_grid[temp_pos.y][temp_pos.x] == '3'
     || server->game_grid[temp_pos.y][temp_pos.x] == '4'){
 
-        add_trea(&server->trea_list_head, temp_pos.x, temp_pos.y,
-        server->players[player_num - 1].coins_carried +
-        server->players[server->game_grid[temp_pos.y][temp_pos.x] - '0' - 1].coins_carried);
-        server->players[player_num - 1].coins_carried = 0;
-        server->players[server->game_grid[temp_pos.y][temp_pos.x] - '0' - 1].coins_carried = 0;
         server->players[player_num - 1].deaths++;
         server->players[server->game_grid[temp_pos.y][temp_pos.x] - '0' - 1].deaths++;
         server->players[player_num - 1].prev_position.x =
@@ -1485,11 +1482,35 @@ uint32_t move_player(struct server_info * server, int8_t player_num){
         set_new_character_game_board(server, 
         &server->players[player_num - 1].curr_position, player_num + '0');
         set_new_character_game_board(server, 
+        &server->players[player_num - 1].prev_position, ' ');
+        set_new_character_game_board(server, 
         &server->players[server->game_grid[temp_pos.y][temp_pos.x] - '0' - 1].curr_position,
-        player_num + '0');
-        set_new_character_game_board(server, &temp_pos, 'D');
+        server->game_grid[temp_pos.y][temp_pos.x]);
+        set_new_character_game_board(server, 
+        &server->players[server->game_grid[temp_pos.y][temp_pos.x] - '0' - 1].prev_position, ' ');
+
+        if (server->players[player_num - 1].coins_carried > 0
+        || server->players[server->game_grid[temp_pos.y][temp_pos.x] - '0' - 1].coins_carried > 0){
+        
+            add_trea(&server->trea_list_head, temp_pos.x, temp_pos.y,
+            server->players[player_num - 1].coins_carried +
+            server->players[server->game_grid[temp_pos.y][temp_pos.x] - '0' - 1].coins_carried);
+            
+            if (server->players[player_num - 1].curr_position.x != temp_pos.x
+            && server->players[player_num - 1].curr_position.y != temp_pos.y
+            && server->players[server->game_grid[temp_pos.y][temp_pos.x] - '0' - 1].curr_position.x
+            != temp_pos.x
+            && server->players[server->game_grid[temp_pos.y][temp_pos.x] - '0' - 1].curr_position.y
+            != temp_pos.y){
+                
+                set_new_character_game_board(server, &temp_pos, 'D');
+            }
+        }
+        
+        server->players[player_num - 1].coins_carried = 0;
+        server->players[server->game_grid[temp_pos.y][temp_pos.x] - '0' - 1].coins_carried = 0;
     }
-    else if (server->game_grid[temp_pos.y][temp_pos.x] == '#'){ //could else be enough?
+    else if (server->game_grid[temp_pos.y][temp_pos.x] == '#'){
 
         server->players[player_num - 1].prev_position.x =
         server->players[player_num - 1].curr_position.x;

@@ -7,7 +7,7 @@ int main(void){
 
     if (handle == NULL){
 
-        printf("\n\nProblem with info connection\n\n");
+        printf("\n\nProblem with info connection.\n\n");
         return 1;
     }
 
@@ -17,7 +17,7 @@ int main(void){
 
         sem_post(handle->sem_client);
         destroy_handle(handle);
-        printf("\n\nBEAST ALREADY CONNECTED\n\n");
+        printf("\n\nBeast already connected.\n\n");
         return 2;
     }
 
@@ -27,7 +27,7 @@ int main(void){
 
         sem_post(handle->sem_client);
         destroy_handle(handle);
-        printf("\n\nProblem with main connection\n\n");
+        printf("\n\nProblem with main connection.\n\n");
         return 3;
     }
 
@@ -38,8 +38,7 @@ int main(void){
     destroy_handle(handle);
 
     while(mv_handle->api->player_number != 5){      // beasts as a 5th player
-        printf("BEAST\n");
-        usleep(100000);
+
     };
 
     initscr();
@@ -52,21 +51,18 @@ int main(void){
 
     while(1){
 
-        // curses.h is used, can cause a problem
-        
-        //printf("%d\n", mv_handle->api->player_number);
-
         sem_wait(mv_handle->sem_move);
 
         if (mv_handle->api->player_number == 0){
 
+            endwin();
             printf("\n\nGAME IS OVER. SERVER CONNECTION LOST\n\n");
             break;
         }
 
         if (mv_handle->key_pressed == 'q' || mv_handle->key_pressed == 'Q'){
 
-            // bot and client managed differently. Look how it is done.
+            endwin();
             printf("\n\nTHANKS FOR THE GAME\n\n");
             break;
         }

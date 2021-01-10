@@ -115,9 +115,6 @@ void * beast_next_move(void * beast){
         struct api_inner_t * inner_beast = (struct api_inner_t *)beast;
         struct pos_t player = {.x = 5, .y = 5};
 
-        // can be another field in struct to keep info if beast is used
-        // one if statement less, more data fields,
-        // used field should be updated in each cycle so 2 x if now vs. 1 x if + update
         if (inner_beast->position.x > 0 && inner_beast->position.y > 0){
 
             get_closest_player(inner_beast, &player);
@@ -188,8 +185,6 @@ void destroy_mv_beast_handle(struct client_mv_handle * mv_handle){
 
     if (mv_handle != NULL){
 
-        endwin();
-
         if (mv_handle->sem_move != SEM_FAILED){
 
             sem_close(mv_handle->sem_move);
@@ -206,7 +201,6 @@ void destroy_mv_beast_handle(struct client_mv_handle * mv_handle){
         }
 
         sem_close(&mv_handle->intern_sem);
-        // exiting a thread is not required
 
         free(mv_handle);
     }

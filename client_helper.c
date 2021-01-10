@@ -4,28 +4,53 @@ void display_client(struct api_t * client){
 
     if (client != NULL){
 
-        printf("%.*s%49sServer`s PID: %u\n", 5, *(client->client_data->game_grid), "", client->server_pid);
-        printf("%.*s%50sCampsite X/Y: unknown\n", 5, *(client->client_data->game_grid + 1), "");
-        printf("%.*s%50sRound number: %lu\n", 5, *(client->client_data->game_grid + 2), "", client->round_number);
-        printf("%.*s\n", 5, *(client->client_data->game_grid + 3));
-        printf("%.*s%49sPlayer:\n", 5, *(client->client_data->game_grid + 4), "");
-        printf("%-55sNumber:     %u\n", "", client->player_number);
-        printf("%-55sType:       %5s\n", "", client->type);
-        printf("%-55sCurr X/Y:   %02u/%02u\n", "", client->client_data->position.x,
+        clear();
+
+        move(0, 0);
+        printw("%.*s%49sServer`s PID: %u", 5, *(client->client_data->game_grid), "", client->server_pid);
+        move(1, 0);
+        printw("%.*s%50sCampsite X/Y: unknown", 5, *(client->client_data->game_grid + 1), "");
+        move(2, 0);
+        printw("%.*s%50sRound number: %lu", 5, *(client->client_data->game_grid + 2), "", client->round_number);
+        move(3, 0);
+        printw("%.*s", 5, *(client->client_data->game_grid + 3));
+        move(4, 0);
+        printw("%.*s%49sPlayer:", 5, *(client->client_data->game_grid + 4), "");
+        move(5, 0);
+        printw("%-55sNumber:     %u", "", client->player_number);
+        move(6, 0);
+        printw("%-55sType:       %5s", "", client->type);
+        move(7, 0);
+        printw("%-55sCurr X/Y:   %02u/%02u", "", client->client_data->position.x,
         client->client_data->position.y);
-        printf("%-55sDeaths:     %u\n\n", "", client->deaths);
-        printf("%-55sCoins carried:   %u\n", "", client->coins_carried);
-        printf("%-55sCoins brought: %u\n\n\n\n", "", client->coins_brought);
-        printf("%-54sLegend:\n", "");
-        printf("%-55s1234 - players\n", "");
-        printf("%-55s#    - wall\n", "");
-        printf("%-55s~    - bushes (slow down)\n", "");
-        printf("%-55s*    - enemy\n", "");
-        printf("%-55sD    - dropped treasure\n", "");
-        printf("%-55sc    - one coin\n", "");
-        printf("%-55sC    - treasure (10 coins)\n", "");
-        printf("%-55sT    - large treasure (50 coins)\n", "");
-        printf("%-55sA    - campsite\n", "");
+        move(8, 0);
+        printw("%-55sDeaths:     %u", "", client->deaths);
+        move(9, 0);
+        printw("%-55sCoins carried:   %u", "", client->coins_carried);
+        move(10, 0);
+        printw("%-55sCoins brought: %u", "", client->coins_brought);
+        move(11, 0);
+        printw("%-54sLegend:", "");
+        move(12, 0);
+        printw("%-55s1234 - players", "");
+        move(13, 0);
+        printw("%-55s#    - wall", "");
+        move(14, 0);
+        printw("%-55s~    - bushes (slow down)", "");
+        move(15, 0);
+        printw("%-55s*    - enemy", "");
+        move(16, 0);
+        printw("%-55sD    - dropped treasure", "");
+        move(17, 0);
+        printw("%-55sc    - one coin", "");
+        move(18, 0);
+        printw("%-55sC    - treasure (10 coins)", "");
+        move(19, 0);
+        printw("%-55sT    - large treasure (50 coins)", "");
+        move(20, 0);
+        printw("%-55sA    - campsite", "");
+
+        refresh();
     }
 }
 
@@ -193,8 +218,6 @@ void destroy_mv_handle(struct client_mv_handle * mv_handle){
 
     if (mv_handle != NULL){
 
-        endwin();
-
         if (mv_handle->sem_move != SEM_FAILED){
 
             sem_close(mv_handle->sem_move);
@@ -211,7 +234,6 @@ void destroy_mv_handle(struct client_mv_handle * mv_handle){
         }
 
         sem_destroy(&mv_handle->intern_sem);
-        // exiting a thread is not required
 
         free(mv_handle);
     }
@@ -223,10 +245,10 @@ void * client_keybinding(void * handle){
 
     while(1){
 
-        //improve this, now it does not work
         mv_handle->key_pressed = getch();
 
-        // without this should work too     ??
+        flushinp();
+
         if (mv_handle->key_pressed == 'q' || mv_handle->key_pressed == 'Q'){
 
             return NULL;

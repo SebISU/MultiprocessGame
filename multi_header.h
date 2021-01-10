@@ -13,14 +13,13 @@
 #define SEM_5 "/sem_5"
 #define SEM_CONN_SERVER "/server_conn_players"
 #define SEM_CONN_CLIENT "/client_conn_players"
-#define PAGE_SIZE 4096
 #define PLAYERS_NUM 4
 #define GAME_WIDTH 52
 #define GAME_HEIGHT 25
 #define CLIENT_POS_X 2
 #define CLIENT_POS_Y 2
 #define BEASTS_MAX_NUM 10
-#define BEAST_NUM_ROUNDS 1000
+#define BEAST_NUM_ROUNDS 100
 
 #include <time.h>
 #include <stdint.h>
@@ -29,10 +28,8 @@
 #include <string.h>
 #include <sys/types.h>
 #include <unistd.h>
-//#include <sys/ipc.h> tutorial yt older sysV API
 #include <sys/shm.h>
 #include <sys/mman.h>
-//#include <sys/stat.h> // not sure if it is needed
 #include <semaphore.h>
 #include <fcntl.h>
 #include <pthread.h>
@@ -46,7 +43,7 @@
         int8_t y;
     };
 
-    struct trea_data {  // I can use it to keep spawn and treasure sum info, dropped treasure, (treasure on map can be done on fly)
+    struct trea_data {
 
         uint32_t value;
         struct pos_t position;
@@ -85,26 +82,17 @@
 
     };
 
-    struct api_t {  // common api
+    struct api_t {
 
         uint64_t round_number;
         pid_t server_pid;
         uint32_t deaths;
         uint32_t coins_carried;
         uint32_t coins_brought;
-        //sem_t semaphore; // why here?
         struct api_inner_t client_data[BEASTS_MAX_NUM];
         int8_t type[6];
-        int8_t player_number; // set to 0 each time on a client side so to know
-                               // that client process is still running?
-                               // if not set to player number on the server side after
-                               // connection succeed means server wants to disconnect
-                               // or killed
-    };  // attribute packed? values will often change so probably it is a bad idea
-// list of position,current move, game_grid to keep beasts, maybe a flag to know
-// if beast is active, but position (0, 0) can be too
-// max number of beasts == 10
-// beast player number = 5
+        int8_t player_number;
+    };
 
 
     struct api_wrap_t {
@@ -141,11 +129,11 @@
         int8_t player_number;
     };
 
-    struct beast_info {     // beast dies after x rounds
+    struct beast_info {
 
         struct pos_t position;
         uint64_t init_round_number;
-        int8_t in_game;    // if currently running
+        int8_t in_game;
     };
 
     struct beasts_t {
@@ -176,34 +164,43 @@
         sem_t * sem_client_3;
         sem_t * sem_client_4;
         sem_t * sem_client_5;
-
     };
 
+    // funcs to manage linked list of treasures
     uint32_t add_trea(struct trea_node ** head, int8_t x, int8_t y , uint32_t value);
     uint32_t fetch_trea(struct trea_node ** head, int8_t x, int8_t y);
     void destroy_trea(struct trea_node ** head);
     
+    // funcs to display views
     void display_client(struct api_t * client);
     void display_server(struct server_info* server);
     
-    uint32_t init_shd_memories(struct api_wrap_t * api_client, struct api_wrap_conn * api_conn); // server could be as a parameter
-    void destroy_shd_memories(struct api_wrap_t * api_client, struct api_wrap_conn * api_conn); // -||-
+    // funcs to manage shared memories
+    uint32_t init_shd_memories(struct api_wrap_t * api_client, struct api_wrap_conn * api_conn);
+    void destroy_shd_memories(struct api_wrap_t * api_client, struct api_wrap_conn * api_conn);
     
+    // funcs to manage semaphores
     uint32_t init_semaphores(struct server_info * server);
     void destroy_semaphores(struct server_info * server); 
     
+    // wrapper for two above and more to manage server instance
     struct server_info * init_server(int8_t ** gm_board);
     void destroy_server(struct server_info * server);
 
+    // funcs to manage keybinding on server side
     void * server_keybinding(void * svr);
     uint32_t add_new_beast(struct server_info * server);
     uint32_t add_new_coin(struct server_info * server);
     uint32_t add_new_small_treasure(struct server_info * server);
     uint32_t add_new_big_treasure(struct server_info * server);
 
-    uint32_t move_beast(struct server_info * server, int8_t beast_num);
-    uint32_t move_player(struct server_info * server, int8_t player_num);
-    
+    // funcs to manage server connections
+    void * handle_connections(void * server);
+    uint32_t update_api_conn(struct server_info * server);
+    uint32_t reset_api_conn(struct server_info * server);
+    uint32_t accept_new_connection(struct server_info * server);
+
+    // funcs to manage server operations
     uint32_t select_random_position(int8_t **gm_board, struct pos_t * position);
     uint32_t set_new_character_game_board(struct server_info * server, const struct pos_t * position, int8_t figure);
     uint32_t reset_player_info(struct client_info * player);
@@ -215,13 +212,9 @@
     uint32_t update_all_api_client(struct server_info * server);
     uint32_t set_client_game_board(struct server_info * server, struct api_inner_t * api_client, const struct pos_t * position);
 
-
-    void * handle_connections(void * server);
-    uint32_t update_api_conn(struct server_info * server);
-    uint32_t reset_api_conn(struct server_info * server);
-    uint32_t accept_new_connection(struct server_info * server);
-
-
+    // funcs to make a move on server side
+    uint32_t move_beast(struct server_info * server, int8_t beast_num);
+    uint32_t move_player(struct server_info * server, int8_t player_num);
 
 
     /*##########        Client funcs      ###########*/

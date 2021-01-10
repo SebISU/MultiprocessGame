@@ -1,7 +1,5 @@
 #include "multi_header.h"
 
-// beast will not go through bushes.
-
 int main(void){
 
     int8_t game_grid[GAME_HEIGHT][GAME_WIDTH] ={"###################################################",
@@ -41,12 +39,14 @@ int main(void){
 
     if (server == NULL){
 
-        printf("\n\nProblem with server initialization\n\n");
+        printf("\n\nProblem with server initialization.\n\n");
         return 1;
     }
 
     initscr();
     keypad(stdscr, TRUE);
+
+
     noecho();
 
     pthread_t thd_keybinding;
@@ -54,15 +54,15 @@ int main(void){
 
     if (pthread_create(&thd_keybinding, NULL, server_keybinding, (void*)server)){
 
-        printf("\n\nProblem with the keybinding thread creation\n\n");
         destroy_server(server);
+        printf("\n\nProblem with keybinding thread creation.\n\n");
         return 2;
     }
 
     if (pthread_create(&thd_connections, NULL, handle_connections, (void*)server)){
 
-        printf("\n\nProblem with the connections thread creation\n\n");
         destroy_server(server);
+        printf("\n\nProblem with connections thread creation.\n\n");
         return 2;
     }
 
@@ -70,10 +70,7 @@ int main(void){
 
     while(1){
 
-        system("clear");
         display_server(server);
-
-        printf("\n\nNEXT MOVE\n\n");
 
         if (server->players[0].player_number > 0 && server->players[0].client_pid >= 0){
 
@@ -102,24 +99,9 @@ int main(void){
 
         pthread_mutex_unlock(&server->mutex);
 
-// 1. when 100 rounds per sec. problem with SERVER CONNECTION LOST on the beast side. Server updates
-// so often that beast has no enough time to perform a cycle. Server sets 0 to api client_num
-// and disconnects beast because beast hasn't set it to 0 (sign that connection exist).
-// 2. When 1 round per sec. new beast sometimes gets info that beast already exist, when previous beast
-// is already killed because server hasn't had enough time to update beasts. Info about beast already exists
-// doesn't work when 100 rounds per sec. and a new "client" wants to be a beast.
-
-
-        usleep(1000000); // time for move
-
-        printf("\n\nNEXT LOCK\n\n");
+        usleep(600000); // time for move
 
         pthread_mutex_lock(&server->mutex);
-        printf("\nMUTEX START %lu\n", server->round_number + 1);
-
-        // mutex required to make sure that handle_connections will not set player_number again
-        // if after shm_unlink() other programs can still see a shared memory everything is fine
-        // if not, children processes won't get info
 
         if (server->key_pressed == 'q' || server->key_pressed == 'Q'){
 
@@ -136,24 +118,15 @@ int main(void){
             sem_post(server->sem_client_4);
             sem_post(server->sem_client_5);
             sem_post(server->sem_server);
-            // checked, works
 
             break;
         }
 
         if (server->key_pressed != 0){
 
-            server->key_pressed = 0;    // this line can be on thread side after sem_wait too
+            server->key_pressed = 0;
             sem_post(&server->sem_keybinding);
         }
-
-        // printf("%lu CHECK 1 \n", server->round_number);
-
-        // for (int32_t i = 0; i < PLAYERS_NUM; ++i){
-
-        //     printf(" %d PL_NUM: %d PL_PID: %d\n", i, server->players[i].player_number, server->players[i].client_pid);
-        //     printf(" %d API_NUM: %d API_PID: %d\n", i, server->api_client[i].api->player_number);
-        // }
 
         server->round_number++;
 
@@ -189,8 +162,7 @@ int main(void){
                         set_new_character_game_board(server, &server->beasts.beasts[i].position, ' ');
                     }
                 }
-               // printf("\n\nHERE\n\n");
-                // this info will not be updated in api because update if client_num > 0 and pid >= 0
+
                 reset_beasts_info(&server->beasts);
                 server->api_conn.api->beasts_in_game = 0;
                 update_api_conn(server);
@@ -204,7 +176,6 @@ int main(void){
 
                 if (server->api_client[i].api->player_number == 0){
 
-                    // if connection exists, manage the move
                     move_player(server, i + 1);
                 }
                 else{
@@ -229,26 +200,15 @@ int main(void){
                     set_new_character_game_board(server, &server->players[i].curr_position, ' ');
                     reset_player_info(server->players + i);
                     server->api_client[i].api->player_number = 0;
-                    // here the same as in multi_header.c:1310?
                     update_api_conn(server);
                 }   
             }
         }
 
-        // printf("%lu CHECK 2 \n", server->round_number);
-
-        // for (int32_t i = 0; i < PLAYERS_NUM; ++i){
-
-        //     printf(" %d PL_NUM: %d PL_PID: %d\n", i, server->players[i].player_number, server->players[i].client_pid);
-        //     printf(" %d API_NUM: %d\n", i, server->api_client[i].api->player_number);
-        // }
-
         update_all_api_client(server);
 
-        printf("\nMUTEX END %lu\n", server->round_number);
         pthread_mutex_unlock(&server->mutex);
 
-        //sleep(2);
     };
 
     destroy_server(server);

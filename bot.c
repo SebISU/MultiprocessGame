@@ -8,7 +8,7 @@ int main(void){
 
     if (handle == NULL){
 
-        printf("Problem with info connection");
+        printf("\n\nProblem with info connection.\n\n");
         return 1;
     }
 
@@ -18,7 +18,7 @@ int main(void){
 
         sem_post(handle->sem_client);
         destroy_handle(handle);
-        printf("SERVER IS FULL OR DEAD\n");
+        printf("\n\nServer is full of dead.\n\n");
         return 2;
     }
 
@@ -28,7 +28,7 @@ int main(void){
 
         sem_post(handle->sem_client);
         destroy_handle(handle);
-        printf("Problem with main connection\n");
+        printf("\n\nProblem with main connection\n\n");
         return 3;
     }
 
@@ -39,8 +39,7 @@ int main(void){
     destroy_handle(handle);
 
     while(mv_handle->api->player_number != mv_handle->player_number){
-        printf("BOT\n");
-        usleep(100000);
+
     };
 
     display_client(mv_handle->api);
@@ -52,33 +51,26 @@ int main(void){
     
     struct pos_t beast = {.x = 5, .y = 5};
     srand(time(NULL));
-    //int t = 0;
 
     while(1){
-        //t++;
-        // here catching moves
-        // curses.h is used, can cause a problem
-        
+
         sem_wait(mv_handle->sem_move);
 
-        system("clear");
-        display_client(mv_handle->api);  // displaying after if? better or not?
+        display_client(mv_handle->api);
 
         if (mv_handle->api->player_number == 0){
 
+            endwin();
             printf("\n\nGAME IS OVER. SERVER CONNECTION LOST\n\n");
             break;
         }
-
-        // if (t == 10){
-
-        //     mv_handle->key_pressed = 'q';
-        // }
 
         if (mv_handle->key_pressed == 'q' || mv_handle->key_pressed == 'Q'){
 
             mv_handle->api->client_data->current_move = QUIT;
             mv_handle->api->player_number = 0;
+
+            endwin();
             printf("\n\nTHANKS FOR THE GAME\n\n");
             break;
         }
@@ -89,10 +81,8 @@ int main(void){
             sem_post(&mv_handle->intern_sem);
         }
 
-        printf("%d\n", mv_handle->api->player_number);
-        mv_handle->api->player_number = 0; // not zero means that process is dead
+        mv_handle->api->player_number = 0;
 
-        // these two fuctions take much time 
         get_closest_beast(mv_handle->api->client_data, &beast);
         mv_handle->api->client_data->current_move = 
         run_away_next_move(mv_handle->api->client_data, &beast);

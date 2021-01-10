@@ -6,10 +6,10 @@ void * bot_keybinding(void * handle){
 
     while(1){
 
-        //improve this, now it does not work
         mv_handle->key_pressed = getch();
 
-        // without this should work too  ??
+        flushinp();
+
         if (mv_handle->key_pressed == 'q' || mv_handle->key_pressed == 'Q'){
 
             return NULL;
@@ -49,7 +49,6 @@ uint32_t get_closest_beast(const struct api_inner_t * player, struct pos_t * cl_
     return 0;
 }
 
-//brute force yeah
 bool can_chase(const struct api_inner_t * client, const struct pos_t * pos_enemy){
 
     if (client == NULL || pos_enemy == NULL){

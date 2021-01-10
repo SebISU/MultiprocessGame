@@ -8,7 +8,7 @@ int main(void){
 
     if (handle == NULL){
 
-        printf("Problem with validation connection");
+        printf("\n\nProblem with info connection.\n\n");
         return 1;
     }
 
@@ -18,7 +18,7 @@ int main(void){
 
         sem_post(handle->sem_client);
         destroy_handle(handle);
-        printf("SERVER IS FULL OR DEAD\n");
+        printf("\n\nServer is full of dead.\n\n");
         return 2;
     }
 
@@ -28,7 +28,7 @@ int main(void){
 
         sem_post(handle->sem_client);
         destroy_handle(handle);
-        printf("Problem with move connection\n");
+        printf("\n\nProblem with move connection.\n\n");
         return 3;
     }
 
@@ -38,12 +38,8 @@ int main(void){
     sem_post(handle->sem_client);
     destroy_handle(handle);
 
-
-    // here problem when connection accepted but server wanted to stop and set pl_num to 0
-    // kill the process after determined period (3s?)
     while(mv_handle->api->player_number != mv_handle->player_number){
-        printf("CLIENT\n");
-        usleep(100000);
+
     };
 
     display_client(mv_handle->api);
@@ -54,17 +50,14 @@ int main(void){
     pthread_create(&mv_handle->key_bindings, NULL, client_keybinding, (void*)mv_handle);
 
     while(1){
-
-        // here catching moves
-        // curses.h is used
         
         sem_wait(mv_handle->sem_move);
 
-        system("clear");
-        display_client(mv_handle->api);  // displaying after if? better or not?
+        display_client(mv_handle->api);
 
         if (mv_handle->api->player_number == 0){
 
+            endwin();
             printf("\n\nGAME IS OVER. SERVER CONNECTION LOST\n\n");
             break;
         }
@@ -77,6 +70,7 @@ int main(void){
 
                 mv_handle->api->client_data->current_move = QUIT;
                 mv_handle->api->player_number = 0;
+                endwin();
                 printf("\n\nTHANKS FOR THE GAME\n\n");
                 break;
             }
