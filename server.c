@@ -213,7 +213,7 @@ int main(void){
 
     destroy_server(server);
 
-    printf("\n\nServer closed\n\n");
+    printf("\n\nServer closed.\n\n");
 
     return 0;
 }

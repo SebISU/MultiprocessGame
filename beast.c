@@ -17,7 +17,7 @@ int main(void){
 
         sem_post(handle->sem_client);
         destroy_handle(handle);
-        printf("\n\nBeast already connected.\n\n");
+        printf("\n\nBeasts already connected.\n\n");
         return 2;
     }
 
