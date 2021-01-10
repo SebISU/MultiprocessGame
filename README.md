@@ -1,1 +1,1 @@
-# master multithreading in c
+# master multithreading and multiprocesssing in c
