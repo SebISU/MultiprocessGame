@@ -207,8 +207,6 @@ int main(void){
 
         update_all_api_client(server);
 
-        pthread_mutex_unlock(&server->mutex);
-
     };
 
     destroy_server(server);
