@@ -1,1 +1,1 @@
-# Multithreading and multiprocessing console game
+# Multithreading and multiprocessing terminal game
