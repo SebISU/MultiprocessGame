@@ -1,1 +1,1 @@
-# master multithreading and multiprocessing in c
+# Multithreading and multiprocessing console game
